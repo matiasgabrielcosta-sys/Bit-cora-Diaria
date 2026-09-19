@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bitácora de donaciones (Copy)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1EE; --card:#FFFFFF; --text:#10201E; --muted:#5A726D; --line:#D6E0DC; --mint:#D3EBE1;
+  --hero:#0E2F2C; --on-hero:#F1F7F4; --hero-muted:#A5C2BB;
+  --sun:#FFC83D; --sun-deep:#D9A21B; --on-sun:#2A1F00; --ok:#1F8A63;
+  --pay-a:#2B7FD4; --pay-b:#E08A2E; --pay-c:#9AAFAA;
+  --disp:'Bricolage Grotesque','Figtree',system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1B19; --card:#122A27; --text:#EAF3F0; --muted:#93AEA8; --line:#1F3D39; --mint:#1B4A42;
+    --hero:#0F3B36; --ok:#37B283; --pay-a:#63ACF2; --pay-b:#F2B45E; --pay-c:#7E9993; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1B19; --card:#122A27; --text:#EAF3F0; --muted:#93AEA8; --line:#1F3D39; --mint:#1B4A42;
+  --hero:#0F3B36; --ok:#37B283; --pay-a:#63ACF2; --pay-b:#F2B45E; --pay-c:#7E9993; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--disp);margin:0;letter-spacing:-.02em}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+#app{max-width:460px;margin:0 auto;padding:18px 16px 112px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+.demo{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--mint);border-radius:14px;padding:10px 12px;font-size:14px;margin-bottom:14px}
+.demo button{font-weight:700;text-decoration:underline;white-space:nowrap}
+
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}
+.top p{margin:0;color:var(--muted);font-size:15px}
+.top h1{font-size:30px;font-weight:800;line-height:1.1}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--sun);color:var(--on-sun);display:grid;place-items:center;font:800 18px var(--disp);flex:none}
+
+.hero{background:var(--hero);color:var(--on-hero);border-radius:28px;padding:20px;display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:center}
+.ring{position:relative;width:132px;height:132px}
+.ring svg{display:block}
+.ring .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring b{font:800 40px/1 var(--disp)}
+.ring small{color:var(--hero-muted);font-size:13px}
+.hero h2{font-size:24px;line-height:1.1;font-weight:800}
+.hero p{margin:6px 0 0;color:var(--hero-muted);font-size:14px}
+.hero .days{margin-top:12px;color:var(--on-hero);font-weight:600}
+
+.cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;margin:16px 0 22px;border-radius:20px;background:var(--sun);color:var(--on-sun);font:800 20px var(--disp);box-shadow:0 4px 0 var(--sun-deep);transition:transform .08s,box-shadow .08s}
+.cta:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sun-deep)}
+.cta:disabled{opacity:.45;box-shadow:none;cursor:not-allowed;transform:none}
+.cta.in-sheet{margin:16px 0 8px}
+.link{display:block;margin:6px auto 0;padding:10px 16px;font-weight:700;color:var(--muted)}
+
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px;gap:8px}
+.sec-head h2{font-size:22px;font-weight:800}
+
+.row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:8px;width:100%;text-align:left}
+.row .who{flex:1;min-width:0}
+.row .who b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .who span{font-size:13px;color:var(--muted)}
+.row .amt{font:800 18px var(--disp);white-space:nowrap}
+.ico{width:40px;height:40px;border-radius:50%;background:var(--mint);display:grid;place-items:center;font-weight:800;flex:none}
+.x{width:38px;height:38px;border-radius:50%;color:var(--muted);display:grid;place-items:center;flex:none}
+.x:hover{background:var(--bg)}
+.dbox{width:44px;text-align:center;flex:none}
+.dbox b{display:block;font:800 20px/1 var(--disp)}
+.dbox span{font-size:12px;color:var(--muted)}
+
+.switch{width:52px;height:30px;border-radius:15px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch[aria-checked=true]{background:var(--ok)}
+.switch[aria-checked=true]::after{transform:translateX(22px)}
+.switch:disabled{opacity:.6;cursor:default}
+.switchrow{margin-bottom:12px}
+.switchrow .who span{display:block;line-height:1.3}
+
+.empty{text-align:center;color:var(--muted);padding:22px 14px;background:var(--card);border-radius:16px;font-size:15px}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));z-index:20}
+.tabs-in{max-width:460px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;border-radius:14px;color:var(--muted);font-weight:600;font-size:13px}
+.tab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current=page]{color:var(--text);background:var(--mint)}
+
+.monthnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+.monthnav h1{font-size:28px;font-weight:800;text-align:center;line-height:1.1}
+.monthnav p{margin:0;text-align:center;color:var(--muted);font-size:14px}
+.navbtn{width:44px;height:44px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:24px;line-height:1}
+.navbtn:disabled{opacity:.35;cursor:default}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-radius:20px;padding:14px 0;margin-bottom:12px}
+.stats div{text-align:center;padding:0 6px}
+.stats div+div{border-left:1px solid var(--line)}
+.stats b{display:block;font:800 22px/1.15 var(--disp)}
+.stats span{font-size:12px;color:var(--muted)}
+.cal{background:var(--card);border-radius:20px;padding:12px;margin-bottom:8px}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.dow{text-align:center;font-size:12px;color:var(--muted);padding:2px 0 4px}
+.cell{aspect-ratio:1/1.1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.cell i{font-style:normal;font-size:11px;color:var(--muted)}
+.cell:not(.w) i{font-size:14px}
+.cell b{font:800 17px/1 var(--disp)}
+.cell.w{background:var(--mint)}
+.cell.t{box-shadow:inset 0 0 0 2px var(--sun-deep)}
+.cell:disabled{opacity:.4;cursor:default}
+.legend{margin:0 2px 22px;color:var(--muted);font-size:13px}
+
+.goal{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px}
+.goal-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.goal-top h3{font-size:18px;font-weight:700}
+.goal-top .big{font:800 26px/1 var(--disp)}
+.goal-top .big small{font:600 15px 'Figtree',sans-serif;color:var(--muted)}
+.bar{height:12px;border-radius:6px;background:var(--line);margin:12px 0;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px;background:var(--ok)}
+.goal-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:38px;height:38px;border-radius:50%;background:var(--bg);font-size:20px;font-weight:700}
+.stepper span{font-size:13px;color:var(--muted)}
+.pace{background:var(--hero);color:var(--on-hero);border-radius:20px;padding:16px 18px;margin-top:4px}
+.pace h3{font-size:19px;margin-bottom:4px}
+.pace p{margin:0;color:var(--hero-muted);font-size:15px}
+
+.veil{position:fixed;inset:0;background:rgba(5,18,16,.55);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:460px;max-height:92vh;overflow:auto;background:var(--bg);border-radius:26px 26px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 14px}
+.sheet h2{font-size:24px;font-weight:800}
+.sheet .sub{margin:2px 0 14px;color:var(--muted)}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px}
+.chip{min-height:56px;border-radius:16px;background:var(--card);font:800 20px var(--disp);border:2px solid transparent}
+.chip.on{background:var(--mint);border-color:var(--ok)}
+.f{display:block;font-weight:700;margin:16px 0 6px}
+.f small{font-weight:500;color:var(--muted)}
+.inp{width:100%;min-height:52px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--text);padding:0 14px;font:600 18px 'Figtree',sans-serif}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--line);padding:4px;border-radius:16px}
+.seg button{min-height:48px;border-radius:12px;font-weight:700}
+.seg button[aria-checked=true]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:#0E2F2C;color:#F1F7F4;padding:12px 16px;border-radius:16px;display:flex;gap:16px;align-items:center;z-index:60;width:max-content;max-width:calc(100% - 32px);font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.toast button{color:var(--sun);font-weight:800}
+
+.split{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px}
+.split h3{font-size:18px;font-weight:700;margin-bottom:2px}
+.split .cap{margin:0 0 14px;color:var(--muted);font-size:13px}
+.split-in{display:grid;grid-template-columns:122px 1fr;gap:16px;align-items:center}
+.donut{position:relative;width:122px;height:122px}
+.donut .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.donut .c b{font:800 24px/1 var(--disp)}
+.donut .c span{font-size:11px;color:var(--muted)}
+.keys{display:grid;gap:10px}
+.key{display:flex;align-items:center;gap:9px}
+.key .dot{width:12px;height:12px;border-radius:4px;flex:none}
+.key .kt{flex:1;min-width:0}
+.key .kt b{display:block;font-weight:700;font-size:15px}
+.key .kt span{font-size:12px;color:var(--muted)}
+.key .kp{font:800 18px var(--disp)}
+
+/* ---------- alta de usuario ---------- */
+.login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.login-card{width:100%;max-width:400px}
+.login .mark{width:60px;height:60px;border-radius:20px;background:var(--sun);color:var(--on-sun);display:grid;place-items:center;margin-bottom:18px}
+.login h1{font-size:30px;font-weight:800;line-height:1.1}
+.login .sub{margin:8px 0 22px;color:var(--muted);font-size:16px}
+.login .err{margin:10px 2px 0;color:#C0392B;font-weight:600;font-size:14px;min-height:20px}
+:root[data-theme="dark"] .login .err,:root:not([data-theme="light"]) .login .err{color:#FF9B8A}
+.login .foot{margin:16px 2px 0;color:var(--muted);font-size:13px;text-align:center}
+body.is-login .tabs{display:none}
+body.is-login #app{padding-bottom:24px}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div id="sheet"></div>
+<div id="toast"></div>
+<nav class="tabs" aria-label="Secciones"><div class="tabs-in">
+  <button class="tab" data-act="tab" data-tab="hoy"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>Hoy</button>
+  <button class="tab" data-act="tab" data-tab="mes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Bitácora</button>
+  <button class="tab" data-act="tab" data-tab="metas"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg>Metas</button>
+</div></nav>
+
+<script>
+(function(){
+const KEY='bitacora-donaciones-v1';
+const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIA=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const DIA3=['dom','lun','mar','mié','jue','vie','sáb'];
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
+const today=()=>ymd(new Date());
+const money=n=>'$'+String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const num1=n=>(Math.round(n*10)/10).toString().replace('.',',');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const pl=(n,a,b)=>n+' '+(n===1?a:b);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const ini1=s=>s?Array.from(s.trim())[0].toUpperCase():'';
+const iniciales=u=>(ini1(u.first)+ini1(u.last))||'?';
+
+const ICON={
+  plus:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>',
+  trash:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  heart:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>'
+};
+
+/* ---------- datos ---------- */
+function seed(){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  let s=y*100+m;
+  const rnd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const amounts=[5000,10000,10000,15000,20000,5000];
+  const names=['Marcela R.','Jorge P.','Analía G.','Tomás B.','Silvia M.','Hernán D.','Paula C.','Rubén A.','Camila S.','Nora F.','','',''];
+  const donations=[], worked={};
+  for(let d=1; d<=now.getDate(); d++){
+    const dt=new Date(y,m,d), wd=dt.getDay(), isToday=d===now.getDate(), ds=ymd(dt);
+    const works=isToday || (wd>=1&&wd<=5) || (wd===6&&d%2===0);
+    if(!works) continue;
+    const n=isToday?1:Math.floor(rnd()*5);
+    if(n===0) worked[ds]=true;
+    for(let i=0;i<n;i++){
+      donations.push({
+        id:uid()+i+d, date:ds,
+        time:pad(10+Math.floor(rnd()*7))+':'+pad(Math.floor(rnd()*60)),
+        amount:amounts[Math.floor(rnd()*amounts.length)],
+        kind:rnd()<.75?'mensual':'unica',
+        pago:rnd()<.62?'credito':'debito',
+        donor:names[Math.floor(rnd()*names.length)]
+      });
+    }
+  }
+  return {user:null, donations, worked, goals:{count:40,amount:450000,days:20}, demo:true};
+}
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.donations&&s.goals){if(!('user' in s))s.user=null;return s;}}}catch(e){}
+  return seed();
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+let state=load();
+const nowD=new Date();
+let ui={tab:'hoy',month:{y:nowD.getFullYear(),m:nowD.getMonth()},sheet:null,toast:null,login:{first:'',last:'',err:''}};
+let toastTimer=null;
+
+const donationsOn=date=>state.donations.filter(d=>d.date===date).sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+const isWorked=date=>!!state.worked[date]||state.donations.some(d=>d.date===date);
+function monthStats(y,m){
+  const pre=y+'-'+pad(m+1)+'-';
+  const ds=state.donations.filter(d=>d.date.startsWith(pre));
+  const days=new Set(ds.map(d=>d.date));
+  Object.keys(state.worked).forEach(k=>{if(k.startsWith(pre)&&state.worked[k])days.add(k)});
+  return {count:ds.length,amount:ds.reduce((a,d)=>a+d.amount,0),days:days.size,dayList:Array.from(days).sort()};
+}
+
+/* ---------- piezas ---------- */
+function pagoLabel(p){ return p==='debito'?'Débito':p==='credito'?'Crédito':'Sin medio'; }
+function donRow(d){
+  const ini=d.donor?esc(Array.from(d.donor.trim())[0].toUpperCase()):ICON.heart;
+  return '<div class="row"><div class="ico">'+ini+'</div><div class="who"><b>'+(d.donor?esc(d.donor):'Sin nombre')+'</b><span>'+(d.kind==='mensual'?'Socio mensual':'Aporte único')+' · '+pagoLabel(d.pago)+(d.time?' · '+d.time:'')+'</span></div><span class="amt">'+money(d.amount)+'</span><button class="x" data-act="del" data-id="'+d.id+'" aria-label="Eliminar donación">'+ICON.trash+'</button></div>';
+}
+function workedRow(date,hint,hintOn){
+  const has=donationsOn(date).length>0, on=isWorked(date);
+  return '<div class="row switchrow"><div class="who"><b>'+(date===today()?'Hoy trabajé':'Trabajé este día')+'</b><span>'+(has?hintOn:hint)+'</span></div><button class="switch" role="switch" aria-checked="'+on+'" aria-label="Día trabajado" data-act="worked" data-date="'+date+'" '+(has?'disabled':'')+'></button></div>';
+}
+function ring(pct,value,total){
+  const R=56,C=2*Math.PI*R,off=C*(1-pct);
+  return '<div class="ring" role="img" aria-label="'+value+' de '+total+' donaciones"><svg viewBox="0 0 140 140" width="132" height="132" aria-hidden="true"><circle cx="70" cy="70" r="56" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="14"/><circle cx="70" cy="70" r="56" fill="none" stroke="var(--sun)" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" transform="rotate(-90 70 70)" opacity="'+(pct>0?1:0)+'"/></svg><div class="c"><b>'+value+'</b><small>de '+total+'</small></div></div>';
+}
+function demoBar(){
+  return '<div class="demo"><span>Estás viendo datos de ejemplo.</span><button data-act="reset">Empezar de cero</button></div>';
+}
+
+/* ---------- vistas ---------- */
+function viewLogin(){
+  const l=ui.login;
+  return '<div class="login"><div class="login-card">'
+  +'<div class="mark" aria-hidden="true">'+ICON.heart+'</div>'
+  +'<h1>Bitácora de donaciones</h1>'
+  +'<p class="sub">Antes de empezar, contanos quién sos. Se guarda solo en este dispositivo.</p>'
+  +'<label class="f" for="login-first">Nombre</label>'
+  +'<input class="inp" id="login-first" type="text" autocomplete="given-name" placeholder="Ej: Lucía" value="'+esc(l.first)+'">'
+  +'<label class="f" for="login-last">Apellido</label>'
+  +'<input class="inp" id="login-last" type="text" autocomplete="family-name" placeholder="Ej: Ferreyra" value="'+esc(l.last)+'">'
+  +'<p class="err" role="alert">'+esc(l.err)+'</p>'
+  +'<button class="cta" data-act="login">Entrar</button>'
+  +'<p class="foot">Vas a poder cambiar estos datos más adelante desde Metas.</p>'
+  +'</div></div>';
+}
+
+function viewHoy(){
+  const n=new Date(), t=today(), st=monthStats(n.getFullYear(),n.getMonth()), g=state.goals;
+  const left=Math.max(g.count-st.count,0), list=donationsOn(t), sum=list.reduce((a,d)=>a+d.amount,0);
+  const u=state.user||{first:'',last:''};
+  return '<header class="top"><div><p>'+cap(DIA[n.getDay()])+' '+n.getDate()+' de '+MES[n.getMonth()]+'</p><h1>Hola, '+esc(u.first)+'</h1></div><div class="avatar" aria-hidden="true" title="'+esc(u.first+' '+u.last)+'">'+esc(iniciales(u))+'</div></header>'
+  +'<section class="hero">'+ring(Math.min(st.count/g.count,1),st.count,g.count)
+  +'<div><h2>'+(left>0?'Faltan '+pl(left,'donación','donaciones'):'Meta cumplida')+'</h2><p>'+(left>0?'para tu meta de '+g.count+' en '+MES[n.getMonth()]:'Llegaste a las '+g.count+' de '+MES[n.getMonth()])+'</p><p class="days">Días trabajados: '+st.days+' de '+g.days+'</p></div></section>'
+  +'<button class="cta" data-act="add">'+ICON.plus+'Anotar donación</button>'
+  +'<div class="sec-head"><h2>Hoy</h2><span class="muted small">'+(list.length?pl(list.length,'donación','donaciones')+' · '+money(sum):'')+'</span></div>'
+  +workedRow(t,'Marcalo si saliste a trabajar aunque no hayas anotado nada.','Se marcó solo al anotar tu primera donación.')
+  +(list.length?list.map(donRow).join(''):'<div class="empty">Todavía no anotaste nada hoy.<br>Tocá el botón amarillo cuando consigas una donación.</div>');
+}
+
+function pagoSplit(y,m){
+  const pre=y+'-'+pad(m+1)+'-';
+  const ds=state.donations.filter(d=>d.date.startsWith(pre));
+  const keys=[{k:'credito',label:'Crédito',color:'var(--pay-a)'},{k:'debito',label:'Débito',color:'var(--pay-b)'},{k:'otro',label:'Sin medio cargado',color:'var(--pay-c)'}];
+  const g=keys.map(o=>{
+    const l=ds.filter(d=>(d.pago==='credito'||d.pago==='debito'?d.pago:'otro')===o.k);
+    return {label:o.label,color:o.color,count:l.length,amount:l.reduce((a,d)=>a+d.amount,0)};
+  }).filter(o=>o.count>0);
+  return {total:ds.length,groups:g};
+}
+function chartPagos(y,m){
+  const {total,groups}=pagoSplit(y,m);
+  if(!total) return '<section class="split"><h3>Crédito vs. débito</h3><p class="cap">Todavía no hay donaciones anotadas en este mes.</p></section>';
+  const R=52,C=2*Math.PI*R;
+  let acc=0,arcs='',keys='';
+  groups.forEach(o=>{
+    const frac=o.count/total, len=C*frac;
+    arcs+='<circle cx="62" cy="62" r="'+R+'" fill="none" stroke="'+o.color+'" stroke-width="18" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-C*acc)+'" transform="rotate(-90 62 62)"/>';
+    acc+=frac;
+    keys+='<div class="key"><span class="dot" style="background:'+o.color+'"></span><span class="kt"><b>'+o.label+'</b><span>'+pl(o.count,'donación','donaciones')+' · '+money(o.amount)+'</span></span><span class="kp">'+num1(frac*100)+'%</span></div>';
+  });
+  const desc=groups.map(o=>o.label+': '+num1(o.count/total*100)+' por ciento').join(', ');
+  return '<section class="split"><h3>Crédito vs. débito</h3><p class="cap">Sobre el total de '+pl(total,'donación','donaciones')+' de '+MES[m]+'.</p>'
+  +'<div class="split-in"><div class="donut" role="img" aria-label="Reparto por medio de pago. '+esc(desc)+'"><svg viewBox="0 0 124 124" width="122" height="122" aria-hidden="true"><circle cx="62" cy="62" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="18"/>'+arcs+'</svg><div class="c"><b>'+total+'</b><span>donaciones</span></div></div>'
+  +'<div class="keys">'+keys+'</div></div></section>';
+}
+
+function viewMes(){
+  const {y,m}=ui.month, n=new Date(), cur=n.getFullYear()*12+n.getMonth(), t=today();
+  const st=monthStats(y,m), first=new Date(y,m,1), off=(first.getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  let cells='';
+  for(let i=0;i<off;i++) cells+='<div></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=y+'-'+pad(m+1)+'-'+pad(d), cnt=donationsOn(ds).length, w=isWorked(ds), fut=ds>t;
+    const val=cnt>0?cnt:(w?'✓':'');
+    cells+='<button class="cell'+(w?' w':'')+(ds===t?' t':'')+'" data-act="day" data-date="'+ds+'" '+(fut?'disabled':'')+' aria-label="'+d+' de '+MES[m]+': '+(cnt?pl(cnt,'donación','donaciones'):(w?'trabajado, sin donaciones':'sin actividad'))+'"><i>'+d+'</i><b>'+val+'</b></button>';
+  }
+  const rows=st.dayList.slice().reverse().map(ds=>{
+    const dt=parse(ds), l=donationsOn(ds), s=l.reduce((a,d)=>a+d.amount,0);
+    return '<button class="row" data-act="day" data-date="'+ds+'"><div class="dbox"><b>'+dt.getDate()+'</b><span>'+DIA3[dt.getDay()]+'</span></div><div class="who"><b>'+(l.length?pl(l.length,'donación','donaciones'):'Trabajado')+'</b><span>'+(l.length?(l.filter(d=>d.kind==='mensual').length+' socios mensuales'):'Sin donaciones')+'</span></div><span class="amt">'+(l.length?money(s):'–')+'</span></button>';
+  }).join('');
+  return '<header class="monthnav"><button class="navbtn" data-act="prev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Tu bitácora del mes</p></div><button class="navbtn" data-act="next" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header>'
+  +'<section class="stats"><div><b>'+st.days+'</b><span>días trabajados</span></div><div><b>'+st.count+'</b><span>donaciones</span></div><div><b>'+money(st.amount)+'</b><span>recaudado</span></div></section>'
+  +chartPagos(y,m)
+  +'<section class="cal"><div class="calgrid">'+['L','M','M','J','V','S','D'].map(x=>'<div class="dow">'+x+'</div>').join('')+cells+'</div></section>'
+  +'<p class="legend">Cada día muestra cuántas donaciones anotaste. Tocá un día para verlo o completarlo.</p>'
+  +'<div class="sec-head"><h2>Día por día</h2></div>'
+  +(rows||'<div class="empty">No hay días trabajados en este mes.</div>');
+}
+
+function goalCard(o){
+  const pct=Math.min(o.value/o.goal,1)*100, left=Math.max(o.goal-o.value,0);
+  return '<section class="goal"><div class="goal-top"><h3>'+o.label+'</h3><span class="big">'+o.fmt(o.value)+' <small>/ '+o.fmt(o.goal)+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="goal-foot"><span class="muted">'+(left>0?'Faltan '+o.fmt(left)+(o.unit||''):'Meta cumplida')+'</span><div class="stepper"><button data-act="goal" data-key="'+o.key+'" data-dir="-1" aria-label="Bajar meta de '+o.label.toLowerCase()+'">−</button><span>Meta</span><button data-act="goal" data-key="'+o.key+'" data-dir="1" aria-label="Subir meta de '+o.label.toLowerCase()+'">+</button></div></div></section>';
+}
+function viewMetas(){
+  const n=new Date(), st=monthStats(n.getFullYear(),n.getMonth()), g=state.goals;
+  const leftC=Math.max(g.count-st.count,0), leftD=Math.max(g.days-st.days,0), avg=st.days?st.count/st.days:0;
+  let title,body;
+  if(leftC===0){title='Meta de donaciones cumplida';body='Lo que sumes de acá en adelante es extra.';}
+  else if(leftD>0){title='Necesitás '+num1(leftC/leftD)+' donaciones por día';body='Te quedan '+pl(leftD,'día','días')+' de trabajo y '+pl(leftC,'donación','donaciones')+' por conseguir. Hasta ahora promediás '+num1(avg)+' por día.';}
+  else{title='Ya completaste tus días';body='Te faltan '+pl(leftC,'donación','donaciones')+'. Podés subir la meta de días si vas a seguir saliendo.';}
+  return '<header class="top"><div><h1>Tus metas</h1><p>'+cap(MES[n.getMonth()])+': lo que llevás y lo que falta.</p></div></header>'
+  +goalCard({key:'count',label:'Donaciones',value:st.count,goal:g.count,fmt:x=>String(x)})
+  +goalCard({key:'amount',label:'Recaudado',value:st.amount,goal:g.amount,fmt:money})
+  +goalCard({key:'days',label:'Días trabajados',value:st.days,goal:g.days,fmt:x=>String(x),unit:' días'})
+  +'<section class="pace"><h3>'+title+'</h3><p>'+body+'</p></section>'
+  +'<div class="row switchrow" style="margin-top:12px"><div class="ico">'+esc(iniciales(state.user||{first:'',last:''}))+'</div><div class="who"><b>'+esc(((state.user||{}).first||'')+' '+((state.user||{}).last||''))+'</b><span>Sesión iniciada en este dispositivo</span></div><button class="link" style="margin:0;padding:8px 10px" data-act="logout">Cambiar</button></div>';
+}
+
+/* ---------- hojas ---------- */
+function sheetDay(){
+  const date=ui.sheet.date, dt=parse(date), list=donationsOn(date), sum=list.reduce((a,d)=>a+d.amount,0);
+  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Detalle del día"><div class="grab"></div>'
+  +'<h2>'+cap(DIA[dt.getDay()])+' '+dt.getDate()+' de '+MES[dt.getMonth()]+'</h2>'
+  +'<p class="sub">'+(list.length?pl(list.length,'donación','donaciones')+' · '+money(sum):'Sin donaciones anotadas')+'</p>'
+  +workedRow(date,'Activalo si trabajaste aunque no hayas anotado nada.','Se marcó solo porque hay donaciones.')
+  +list.map(donRow).join('')
+  +(date<=today()?'<button class="cta in-sheet" data-act="add" data-date="'+date+'">'+ICON.plus+'Anotar donación</button>':'')
+  +'<button class="link" data-act="closebtn">Cerrar</button></div></div>';
+}
+function sheetAdd(){
+  const s=ui.sheet, dt=parse(s.date), isToday=s.date===today();
+  const chips=[5000,10000,15000,20000].map(v=>'<button class="chip'+(s.amount===v&&!s.custom?' on':'')+'" data-act="amt" data-v="'+v+'">'+money(v)+'</button>').join('');
+  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Nueva donación"><div class="grab"></div>'
+  +'<h2>Nueva donación</h2><p class="sub">'+(isToday?'Se anota en el día de hoy.':'Se anota el '+DIA[dt.getDay()]+' '+dt.getDate()+' de '+MES[dt.getMonth()]+'.')+'</p>'
+  +'<div class="chips">'+chips+'</div>'
+  +'<input class="inp" id="amt-custom" inputmode="numeric" autocomplete="off" placeholder="Otro monto" aria-label="Otro monto" value="'+esc(s.custom)+'">'
+  +'<span class="f">Tipo de aporte</span><div class="seg" role="radiogroup" aria-label="Tipo de aporte"><button role="radio" aria-checked="'+(s.kind==='mensual')+'" data-act="kind" data-v="mensual">Socio mensual</button><button role="radio" aria-checked="'+(s.kind==='unica')+'" data-act="kind" data-v="unica">Aporte único</button></div>'
+  +'<span class="f">Medio de pago</span><div class="seg" role="radiogroup" aria-label="Medio de pago"><button role="radio" aria-checked="'+(s.pago==='credito')+'" data-act="pago" data-v="credito">Crédito</button><button role="radio" aria-checked="'+(s.pago==='debito')+'" data-act="pago" data-v="debito">Débito</button></div>'
+  +'<label class="f" for="donor">Nombre <small>(opcional)</small></label><input class="inp" id="donor" type="text" autocomplete="off" placeholder="Ej: Marcela R." value="'+esc(s.name)+'">'
+  +'<button class="cta in-sheet" id="save-btn" data-act="save" '+(s.amount>0?'':'disabled')+'>'+(s.amount>0?'Guardar '+money(s.amount):'Elegí un monto')+'</button>'
+  +'<button class="link" data-act="closebtn">Cancelar</button></div></div>';
+}
+
+/* ---------- render ---------- */
+function renderToast(){
+  const el=document.getElementById('toast');
+  el.innerHTML=ui.toast?'<div class="toast" role="status"><span>'+esc(ui.toast.msg)+'</span>'+(ui.toast.undo?'<button data-act="undo">Deshacer</button>':'')+'</div>':'';
+}
+function render(){
+  const logged=!!(state.user&&state.user.first);
+  document.body.classList.toggle('is-login',!logged);
+  if(!logged){
+    document.getElementById('app').innerHTML=viewLogin();
+    document.getElementById('sheet').innerHTML='';
+    document.getElementById('toast').innerHTML='';
+    document.documentElement.style.overflow='';
+    const f=document.getElementById('login-first'); if(f&&!ui.login.first) f.focus();
+    return;
+  }
+  const v=ui.tab==='hoy'?viewHoy():ui.tab==='mes'?viewMes():viewMetas();
+  document.getElementById('app').innerHTML=(state.demo?demoBar():'')+v;
+  document.querySelectorAll('.tab').forEach(b=>{if(b.dataset.tab===ui.tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():sheetDay()):'';
+  document.documentElement.style.overflow=ui.sheet?'hidden':'';
+  renderToast();
+}
+function toast(msg,undo){
+  ui.toast={msg:msg,undo:undo};
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ui.toast=null;renderToast();},5000);
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, s=ui.sheet;
+  if(a==='login'){
+    const first=(ui.login.first||'').trim().replace(/\s+/g,' '), last=(ui.login.last||'').trim().replace(/\s+/g,' ');
+    if(!first||!last){ ui.login.err='Completá tu nombre y tu apellido para continuar.'; return render(); }
+    ui.login.err='';
+    state.user={first:first,last:last};
+    persist(); toast('Bienvenida, '+first);
+    return render();
+  }
+  if(a==='logout'){
+    ui.login={first:(state.user||{}).first||'',last:(state.user||{}).last||'',err:''};
+    state.user=null; ui.tab='hoy'; ui.sheet=null; persist(); return render();
+  }
+  if(a==='close'){ if(e.target!==el) return; ui.sheet=null; return render(); }
+  if(a==='closebtn'){ ui.sheet=null; return render(); }
+  if(a==='tab'){ ui.tab=el.dataset.tab; render(); window.scrollTo(0,0); return; }
+  if(a==='add'){ ui.sheet={type:'add',date:el.dataset.date||today(),amount:null,custom:'',kind:'mensual',pago:'credito',name:''}; return render(); }
+  if(a==='day'){ ui.sheet={type:'day',date:el.dataset.date}; return render(); }
+  if(a==='amt'){ s.amount=Number(el.dataset.v); s.custom=''; return render(); }
+  if(a==='kind'){ s.kind=el.dataset.v; return render(); }
+  if(a==='pago'){ s.pago=el.dataset.v; return render(); }
+  if(a==='save'){
+    if(!(s.amount>0)) return;
+    const n=new Date(), donor=(s.name||'').trim();
+    state.donations.push({id:uid(),date:s.date,time:s.date===today()?pad(n.getHours())+':'+pad(n.getMinutes()):'',amount:s.amount,kind:s.kind,pago:s.pago||'credito',donor:donor});
+    const id=state.donations[state.donations.length-1].id, amt=s.amount;
+    ui.sheet=null; persist();
+    toast('Donación anotada · '+money(amt),()=>{state.donations=state.donations.filter(d=>d.id!==id);});
+    return render();
+  }
+  if(a==='del'){
+    const d=state.donations.find(x=>x.id===el.dataset.id); if(!d) return;
+    state.donations=state.donations.filter(x=>x.id!==d.id); persist();
+    toast('Donación eliminada',()=>{state.donations.push(d);});
+    return render();
+  }
+  if(a==='worked'){
+    const date=el.dataset.date;
+    if(state.worked[date]) delete state.worked[date]; else state.worked[date]=true;
+    persist(); return render();
+  }
+  if(a==='undo'){
+    if(ui.toast&&ui.toast.undo) ui.toast.undo();
+    ui.toast=null; persist(); return render();
+  }
+  if(a==='prev'||a==='next'){
+    const d=new Date(ui.month.y,ui.month.m+(a==='next'?1:-1),1);
+    ui.month={y:d.getFullYear(),m:d.getMonth()}; return render();
+  }
+  if(a==='goal'){
+    const k=el.dataset.key, dir=Number(el.dataset.dir), g=state.goals;
+    const cfg={count:{step:1,min:1,max:500},amount:{step:50000,min:50000,max:20000000},days:{step:1,min:1,max:31}}[k];
+    g[k]=Math.min(cfg.max,Math.max(cfg.min,g[k]+dir*cfg.step)); persist(); return render();
+  }
+  if(a==='reset'){ state.donations=[]; state.worked={}; state.demo=false; persist(); return render(); }
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='login-first'){ ui.login.first=e.target.value; return; }
+  if(e.target.id==='login-last'){ ui.login.last=e.target.value; return; }
+  const s=ui.sheet; if(!s||s.type!=='add') return;
+  if(e.target.id==='donor'){ s.name=e.target.value; return; }
+  if(e.target.id==='amt-custom'){
+    const digits=e.target.value.replace(/\D/g,'').slice(0,7);
+    e.target.value=digits; s.custom=digits; s.amount=digits?Number(digits):null;
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    const b=document.getElementById('save-btn');
+    if(b){ b.disabled=!(s.amount>0); b.textContent=s.amount>0?'Guardar '+money(s.amount):'Elegí un monto'; }
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; return render(); }
+  if(e.key==='Enter'&&(e.target.id==='login-first'||e.target.id==='login-last')){
+    e.preventDefault();
+    const b=document.querySelector('[data-act="login"]'); if(b) b.click();
+  }
+});
+
+render();
+})();
+</script>
+</body>
+</html>
