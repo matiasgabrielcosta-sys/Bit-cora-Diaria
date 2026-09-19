@@ -165,6 +165,14 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .key .kt span{font-size:12px;color:var(--muted)}
 .key .kp{font:800 18px var(--disp)}
 
+.zona{background:var(--card);border-radius:20px;padding:16px;margin-top:12px}
+.zona h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.zona p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.danger{width:100%;min-height:52px;border-radius:14px;border:2px solid var(--line);font-weight:800;color:#C0392B}
+.danger.solid{background:#C0392B;color:#fff;border-color:#C0392B}
+:root[data-theme="dark"] .danger,:root:not([data-theme="light"]) .danger{color:#FF9B8A}
+:root[data-theme="dark"] .danger.solid,:root:not([data-theme="light"]) .danger.solid{background:#B33A2B;color:#fff;border-color:#B33A2B}
+
 /* ---------- alta de usuario ---------- */
 .login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .login-card{width:100%;max-width:400px}
@@ -377,7 +385,8 @@ function viewMetas(){
   +goalCard({key:'amount',label:'Recaudado',value:st.amount,goal:g.amount,fmt:money})
   +goalCard({key:'days',label:'Días trabajados',value:st.days,goal:g.days,fmt:x=>String(x),unit:' días'})
   +'<section class="pace"><h3>'+title+'</h3><p>'+body+'</p></section>'
-  +'<div class="row switchrow" style="margin-top:12px"><div class="ico">'+esc(iniciales(state.user||{first:'',last:''}))+'</div><div class="who"><b>'+esc(((state.user||{}).first||'')+' '+((state.user||{}).last||''))+'</b><span>Sesión iniciada en este dispositivo</span></div><button class="link" style="margin:0;padding:8px 10px" data-act="logout">Cambiar</button></div>';
+  +'<div class="row switchrow" style="margin-top:12px"><div class="ico">'+esc(iniciales(state.user||{first:'',last:''}))+'</div><div class="who"><b>'+esc(((state.user||{}).first||'')+' '+((state.user||{}).last||''))+'</b><span>Sesión iniciada en este dispositivo</span></div><button class="link" style="margin:0;padding:8px 10px" data-act="logout">Cambiar</button></div>'
+  +'<section class="zona"><h3>Empezar de cero</h3><p>Borra todas las donaciones y los días trabajados de todos los meses, y deja las metas en sus valores iniciales.</p><button class="danger" data-act="wipe">Empezar de cero</button></section>';
 }
 
 /* ---------- hojas ---------- */
@@ -405,6 +414,16 @@ function sheetAdd(){
   +'<button class="link" data-act="closebtn">Cancelar</button></div></div>';
 }
 
+function sheetWipe(){
+  const n=state.donations.length;
+  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Empezar de cero"><div class="grab"></div>'
+  +'<h2>¿Empezar de cero?</h2>'
+  +'<p class="sub">'+(state.demo?'Se borran los datos de ejemplo y arrancás con la bitácora vacía.':'Se borran '+pl(n,'donación anotada','donaciones anotadas')+' y todos los días marcados como trabajados. Tus metas vuelven a los valores iniciales.')+'</p>'
+  +'<p class="sub">Esta acción no se puede deshacer y tu nombre no se borra.</p>'
+  +'<button class="danger solid" data-act="wipe-yes">Sí, borrar todo</button>'
+  +'<button class="link" data-act="closebtn">Cancelar</button></div></div>';
+}
+
 /* ---------- render ---------- */
 function renderToast(){
   const el=document.getElementById('toast');
@@ -424,7 +443,7 @@ function render(){
   const v=ui.tab==='hoy'?viewHoy():ui.tab==='mes'?viewMes():viewMetas();
   document.getElementById('app').innerHTML=(state.demo?demoBar():'')+v;
   document.querySelectorAll('.tab').forEach(b=>{if(b.dataset.tab===ui.tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():sheetDay()):'';
+  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():ui.sheet.type==='wipe'?sheetWipe():sheetDay()):'';
   document.documentElement.style.overflow=ui.sheet?'hidden':'';
   renderToast();
 }
@@ -491,7 +510,12 @@ document.addEventListener('click',e=>{
     const cfg={count:{step:1,min:1,max:500},amount:{step:50000,min:50000,max:20000000},days:{step:1,min:1,max:31}}[k];
     g[k]=Math.min(cfg.max,Math.max(cfg.min,g[k]+dir*cfg.step)); persist(); return render();
   }
-  if(a==='reset'){ state.donations=[]; state.worked={}; state.demo=false; persist(); return render(); }
+  if(a==='reset'||a==='wipe'){ ui.sheet={type:'wipe'}; return render(); }
+  if(a==='wipe-yes'){
+    state.donations=[]; state.worked={}; state.demo=false; state.goals={count:40,amount:450000,days:20};
+    ui.sheet=null; ui.month={y:nowD.getFullYear(),m:nowD.getMonth()}; ui.tab='hoy';
+    persist(); toast('Bitácora vaciada'); render(); window.scrollTo(0,0); return;
+  }
 });
 document.addEventListener('input',e=>{
   if(e.target.id==='login-first'){ ui.login.first=e.target.value; return; }
