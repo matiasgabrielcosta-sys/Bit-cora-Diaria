@@ -204,6 +204,38 @@ const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g
 const dec=c=>JSON.parse(decodeURIComponent(escape(atob(c.replace(/-/g,'+').replace(/_/g,'/')))));
 const dm=t=>{const d=new Date(t);return d.getDate()+'/'+(d.getMonth()+1)};
 function teamStore(){try{return JSON.parse(localStorage.getItem(TKEY))||{};}catch(e){return {};}}
+function saveTeam(o){try{localStorage.setItem(TKEY,JSON.stringify(o));}catch(e){}}
+function delTeamDon(mid,did){
+  const o=teamStore(), m=o[mid]; if(!m||!did) return;
+  const dn=m.d.donations.find(x=>x.id===did); if(!dn) return;
+  m.d.donations=m.d.donations.filter(x=>x.id!==did); m.del=(m.del||[]).concat(String(did)); saveTeam(o);
+  toast('Donación eliminada.',()=>{const q=teamStore(); if(!q[mid]) return; q[mid].d.donations.push(dn); q[mid].del=(q[mid].del||[]).filter(x=>x!==String(did)); saveTeam(q);});
+}
+function csvCell(v){
+  v=String(v); if(/^[=+\-@\t\r]/.test(v)) v="'"+v;
+  return /[";,\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+}
+function exportCsv(kind){
+  const {y,m}=ui.tm, pre=y+'-'+pad(m+1)+'-', mem=teamList(), rows=[];
+  const nameOf=t=>t.d.name||'Integrante';
+  if(kind==='det'){
+    rows.push(['Integrante','Fecha','Hora','Monto','Tipo','Medio de pago']);
+    mem.forEach(t=>t.d.donations.filter(d=>d.date.startsWith(pre)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))
+      .forEach(d=>rows.push([nameOf(t),d.date,d.time||'',d.amount,d.kind==='mensual'?'Socio mensual':'Aporte único',PAY[d.pay]||'Sin dato'])));
+  } else {
+    rows.push(['Integrante','Días trabajados','Donaciones','Recaudado','Aporte promedio','Donaciones por día trabajado','Socios mensuales','Crédito','Débito','Sin dato','Meta de donaciones','Último resumen']);
+    mem.forEach(t=>{
+      const st=monthStats(y,m,t.d), mens=t.d.donations.filter(d=>d.date.startsWith(pre)&&d.kind==='mensual').length;
+      rows.push([nameOf(t),st.days,st.count,st.amount,st.count?Math.round(st.amount/st.count):0,st.days?String((st.count/st.days).toFixed(2)).replace('.',','):0,mens,st.credit,st.debit,st.count-st.credit-st.debit,(t.d.goals||{}).count||0,ymd(new Date(t.t))]);
+    });
+  }
+  const csv='\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='equipo-'+y+'-'+pad(m+1)+'-'+(kind==='det'?'detalle':'resumen')+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
 function teamList(){
   const o=teamStore(), a=Object.keys(o).map(id=>({id:id,d:o[id].d,t:o[id].t}));
   if(state.name||state.donations.length) a.push({id:'yo',d:{donations:state.donations,worked:state.worked,goals:state.goals,name:state.name||'Yo (líder)'},t:Date.now()});
@@ -216,9 +248,10 @@ function importCode(x){
     if(!p||p.v!==1||!p.id||!Array.isArray(p.donations)) return null;
     const o=teamStore(), t=+p.t||Date.now(), g=p.goals||{}, w={};
     Object.keys(p.worked||{}).forEach(k=>{if(DRE.test(k)&&p.worked[k])w[k]=true;});
-    if(!(o[p.id]&&o[p.id].t>=t)) o[p.id]={t:t,d:{
+    const del=(o[p.id]&&o[p.id].del)||[];
+    if(!(o[p.id]&&o[p.id].t>=t)) o[p.id]={t:t,del:del,d:{
       name:String(p.name||'').slice(0,40),worked:w,goals:{count:+g.count||0,amount:+g.amount||0,days:+g.days||0},
-      donations:p.donations.filter(d=>d&&DRE.test(d.date)&&isFinite(d.amount)).map(d=>({id:String(d.id||''),date:d.date,time:String(d.time||''),amount:+d.amount,kind:d.kind==='unica'?'unica':'mensual',pay:d.pay==='credito'||d.pay==='debito'?d.pay:'',donor:''}))
+      donations:p.donations.filter(d=>d&&DRE.test(d.date)&&isFinite(d.amount)&&!(d.id&&del.indexOf(String(d.id))>=0)).map(d=>({id:String(d.id||''),date:d.date,time:String(d.time||''),amount:+d.amount,kind:d.kind==='unica'?'unica':'mensual',pay:d.pay==='credito'||d.pay==='debito'?d.pay:'',donor:''}))
     }};
     localStorage.setItem(TKEY,JSON.stringify(o));
     return String(p.name||'Integrante').slice(0,40);
@@ -325,20 +358,21 @@ function viewMes(){
 
 function viewEquipo(){
   const {y,m}=ui.tm, n=new Date(), cur=n.getFullYear()*12+n.getMonth(), pre=y+'-'+pad(m+1)+'-', dim=new Date(y,m+1,0).getDate(), mem=teamList();
-  const rows=mem.map(t=>{const g=t.d.goals||{};return {when:t.t,name:t.d.name||'Integrante',st:monthStats(y,m,t.d),goal:g.count||0,mens:t.d.donations.filter(d=>d.date.startsWith(pre)&&d.kind==='mensual').length};}).sort((a,b)=>b.st.count-a.st.count);
+  const rows=mem.map(t=>{const g=t.d.goals||{};return {id:t.id,when:t.t,name:t.d.name||'Integrante',st:monthStats(y,m,t.d),goal:g.count||0,mens:t.d.donations.filter(d=>d.date.startsWith(pre)&&d.kind==='mensual').length};}).sort((a,b)=>b.st.count-a.st.count);
   const T=rows.reduce((a,r)=>({c:a.c+r.st.count,m:a.m+r.st.amount,d:a.d+r.st.days,g:a.g+r.goal,s:a.s+r.mens,cr:a.cr+r.st.credit,db:a.db+r.st.debit}),{c:0,m:0,d:0,g:0,s:0,cr:0,db:0});
   const per=Array(dim).fill(0); mem.forEach(t=>t.d.donations.forEach(d=>{if(d.date.startsWith(pre))per[+d.date.slice(8)-1]++;}));
   const mx=Math.max(1,...per), pct=T.g?Math.min(T.c/T.g,1)*100:0;
   const head='<header class="monthnav"><button class="navbtn" data-act="tprev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Panel del equipo · solo vos lo ves</p></div><button class="navbtn" data-act="tnext" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header><div class="demo"><span>Cada resumen llega al abrir el enlace que te mandan.</span><button data-act="paste">Pegar código</button></div>';
   if(!mem.length) return head+'<div class="empty">Todavía no recibiste resúmenes.<br>Cuando un integrante toque “Enviar” y abras su enlace, aparece acá.</div>';
   return head
+  +'<div class="demo"><span>Bajar '+MES[m]+' a planilla</span><span style="display:flex;gap:16px"><button data-act="csv" data-v="res">Resumen</button><button data-act="csv" data-v="det">Detalle</button></span></div>'
   +'<section class="stats"><div><b>'+rows.length+'</b><span>integrantes</span></div><div><b>'+T.c+'</b><span>donaciones</span></div><div><b>'+money(T.m)+'</b><span>recaudado</span></div></section>'
   +'<section class="stats"><div><b>'+num1(T.d?T.c/T.d:0)+'</b><span>por día trabajado</span></div><div><b>'+money(T.c?T.m/T.c:0)+'</b><span>aporte promedio</span></div><div><b>'+(T.c?Math.round(T.s*100/T.c):0)+'%</b><span>socios mensuales</span></div></section>'
   +payBlock({credit:T.cr,debit:T.db,count:T.c})
   +'<section class="goal"><div class="goal-top"><h3>Meta del equipo</h3><span class="big">'+T.c+' <small>/ '+T.g+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><span class="muted small">Suma de las metas de donaciones de cada integrante.</span></section>'
   +'<div class="sec-head"><h2>Donaciones por día</h2></div><section class="cal"><div class="bars" role="img" aria-label="Donaciones del equipo por día">'+per.map((v,i)=>'<i title="Día '+(i+1)+': '+v+'" style="height:'+Math.max(v/mx*100,3)+'%"></i>').join('')+'</div><div class="axis"><span>1</span><span>'+dim+'</span></div></section>'
-  +'<div class="sec-head"><h2>Por integrante</h2><span class="muted small">según donaciones</span></div>'
-  +rows.map((r,i)=>'<div class="row"><div class="dbox"><b>'+(i+1)+'</b><span>puesto</span></div><div class="who"><b>'+esc(r.name)+'</b><span>'+pl(r.st.count,'donación','donaciones')+' · '+pl(r.st.days,'día','días')+' · '+num1(r.st.days?r.st.count/r.st.days:0)+'/día · act. '+dm(r.when)+'</span><div class="bar mini"><i style="width:'+(r.goal?Math.min(r.st.count/r.goal,1)*100:0)+'%"></i></div></div><span class="amt">'+money(r.st.amount)+'</span></div>').join('');
+  +'<div class="sec-head"><h2>Por integrante</h2><span class="muted small">tocá uno para ver el detalle</span></div>'
+  +rows.map((r,i)=>'<div class="row"'+(r.id==='yo'?'':' role="button" tabindex="0" data-act="member" data-id="'+esc(r.id)+'" style="cursor:pointer"')+'><div class="dbox"><b>'+(i+1)+'</b><span>puesto</span></div><div class="who"><b>'+esc(r.name)+'</b><span>'+pl(r.st.count,'donación','donaciones')+' · '+pl(r.st.days,'día','días')+' · '+num1(r.st.days?r.st.count/r.st.days:0)+'/día · act. '+dm(r.when)+'</span><div class="bar mini"><i style="width:'+(r.goal?Math.min(r.st.count/r.goal,1)*100:0)+'%"></i></div></div><span class="amt">'+money(r.st.amount)+'</span></div>').join('');
 }
 function goalCard(o){
   const pct=Math.min(o.value/o.goal,1)*100, left=Math.max(o.goal-o.value,0);
@@ -372,6 +406,22 @@ function sheetDay(){
 function sheetName(){
   return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Tu nombre"><div class="grab"></div><h2>Tu nombre</h2><p class="sub">Así te va a ver tu líder en el panel del equipo.</p><input class="inp" id="myname" type="text" autocomplete="off" maxlength="40" placeholder="Ej: Lucía P." aria-label="Tu nombre" value="'+esc(ui.sheet.value)+'"><button class="cta in-sheet" data-act="savename">Guardar</button><button class="link" data-act="closebtn">Cancelar</button></div></div>';
 }
+function tRow(d,mid){
+  const dt=parse(d.date);
+  return '<div class="row"><div class="who"><b>'+money(d.amount)+' · '+dt.getDate()+'/'+(dt.getMonth()+1)+'</b><span>'+(d.kind==='mensual'?'Socio mensual':'Aporte único')+(PAY[d.pay]?' · '+PAY[d.pay]:'')+(d.time?' · '+esc(d.time):'')+'</span></div><button class="x" data-act="tdel" data-mid="'+esc(mid)+'" data-id="'+esc(d.id)+'" aria-label="Eliminar donación">'+ICON.trash+'</button></div>';
+}
+function sheetMember(){
+  const s=ui.sheet, e=teamStore()[s.id]; if(!e) return '';
+  const {y,m}=ui.tm, pre=y+'-'+pad(m+1)+'-', nmx=e.d.name||'Integrante';
+  const list=e.d.donations.filter(d=>d.date.startsWith(pre)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const sum=list.reduce((a,d)=>a+d.amount,0);
+  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Detalle de '+esc(nmx)+'"><div class="grab"></div>'
+  +'<h2>'+esc(nmx)+'</h2><p class="sub">'+cap(MES[m])+' '+y+' · '+(list.length?pl(list.length,'donación','donaciones')+' · '+money(sum):'Sin donaciones en este mes')+'</p>'
+  +(list.length?list.map(d=>tRow(d,s.id)).join(''):'<div class="empty">No hay donaciones para mostrar.</div>')
+  +'<p class="sub" style="margin-top:14px">Lo que borres no vuelve aunque esta persona reenvíe su resumen. Si la quitás del equipo y reenvía, aparece de nuevo.</p>'
+  +'<button class="link" style="color:#D9483B;text-decoration:underline" data-act="tremove">'+(s.confirm?'Tocá de nuevo para quitar a '+esc(nmx):'Quitar del equipo')+'</button>'
+  +'<button class="link" data-act="closebtn">Cerrar</button></div></div>';
+}
 function sheetPaste(){
   return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Pegar código"><div class="grab"></div><h2>Pegar código</h2><p class="sub">Pegá el enlace que te mandó un integrante.</p><textarea class="inp" id="pastebox" rows="4" style="min-height:110px;padding:12px;font-size:15px" aria-label="Enlace o código"></textarea><button class="cta in-sheet" data-act="dopaste">Agregar al equipo</button><button class="link" data-act="closebtn">Cancelar</button></div></div>';
 }
@@ -399,7 +449,7 @@ function render(){
   const v=ui.tab==='hoy'?viewHoy():ui.tab==='mes'?viewMes():ui.tab==='equipo'&&leader?viewEquipo():viewMetas();
   document.getElementById('app').innerHTML=v;
   document.querySelectorAll('.tab').forEach(b=>{if(b.dataset.tab===ui.tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():ui.sheet.type==='name'?sheetName():ui.sheet.type==='paste'?sheetPaste():sheetDay()):'';
+  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():ui.sheet.type==='name'?sheetName():ui.sheet.type==='paste'?sheetPaste():ui.sheet.type==='member'?sheetMember():sheetDay()):'';
   document.documentElement.style.overflow=ui.sheet?'hidden':'';
   renderToast();
 }
@@ -453,6 +503,17 @@ document.addEventListener('click',e=>{
     const d=new Date(ui.tm.y,ui.tm.m+(a==='tnext'?1:-1),1);
     ui.tm={y:d.getFullYear(),m:d.getMonth()}; return render();
   }
+  if(a==='member'){ if(!teamStore()[el.dataset.id]) return; ui.sheet={type:'member',id:el.dataset.id,confirm:false}; return render(); }
+  if(a==='tdel'){ delTeamDon(el.dataset.mid,el.dataset.id); return render(); }
+  if(a==='tremove'){
+    const o=teamStore(), ent=o[s.id], id=s.id;
+    if(!ent){ ui.sheet=null; return render(); }
+    if(!s.confirm){ s.confirm=true; return render(); }
+    delete o[id]; saveTeam(o); ui.sheet=null;
+    toast((ent.d.name||'Integrante')+' quitado del equipo.',()=>{const q=teamStore(); q[id]=ent; saveTeam(q);});
+    return render();
+  }
+  if(a==='csv'){ exportCsv(el.dataset.v); toast('Descargando planilla…'); return render(); }
   if(a==='send') return sendReport();
   if(a==='paste'){ ui.sheet={type:'paste'}; return render(); }
   if(a==='dopaste'){
@@ -483,7 +544,10 @@ document.addEventListener('input',e=>{
     if(b){ const v=saveState(s); b.disabled=v[0]; b.textContent=v[1]; }
   }
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; render(); } });
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; render(); }
+  if(e.key==='Enter'&&e.target&&e.target.dataset&&e.target.dataset.act==='member') e.target.click();
+});
 
 try{leader=localStorage.getItem('bitacora-lider')==='1';}catch(e){}
 if(leader) document.getElementById('tab-team').hidden=false;
