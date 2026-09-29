@@ -236,6 +236,14 @@ function exportCsv(kind){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
+const GKEY='bitacora-metas-equipo-v1';
+function teamGoals(){try{return JSON.parse(localStorage.getItem(GKEY))||{};}catch(e){return {};}}
+function effTeamGoal(y,m){
+  const all=teamGoals(), key=y+'-'+pad(m+1), ks=Object.keys(all).filter(k=>k<=key).sort();
+  if(ks.length) return {g:Object.assign({count:0,amount:0,days:0},all[ks[ks.length-1]]),custom:true,exact:ks[ks.length-1]===key};
+  const g=teamList().reduce((a,t)=>{const x=t.d.goals||{};return {count:a.count+(x.count||0),amount:a.amount+(x.amount||0),days:a.days+(x.days||0)};},{count:0,amount:0,days:0});
+  return {g:g,custom:false,exact:false};
+}
 function teamList(){
   const o=teamStore(), a=Object.keys(o).map(id=>({id:id,d:o[id].d,t:o[id].t}));
   if(state.name||state.donations.length) a.push({id:'yo',d:{donations:state.donations,worked:state.worked,goals:state.goals,name:state.name||'Yo (líder)'},t:Date.now()});
@@ -362,6 +370,7 @@ function viewEquipo(){
   const T=rows.reduce((a,r)=>({c:a.c+r.st.count,m:a.m+r.st.amount,d:a.d+r.st.days,g:a.g+r.goal,s:a.s+r.mens,cr:a.cr+r.st.credit,db:a.db+r.st.debit}),{c:0,m:0,d:0,g:0,s:0,cr:0,db:0});
   const per=Array(dim).fill(0); mem.forEach(t=>t.d.donations.forEach(d=>{if(d.date.startsWith(pre))per[+d.date.slice(8)-1]++;}));
   const mx=Math.max(1,...per), pct=T.g?Math.min(T.c/T.g,1)*100:0;
+  const TG=effTeamGoal(y,m), goalNote=TG.exact?'fijada para '+MES[m]:(TG.custom?'usa la de un mes anterior':'suma de metas individuales');
   const head='<header class="monthnav"><button class="navbtn" data-act="tprev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Panel del equipo · solo vos lo ves</p></div><button class="navbtn" data-act="tnext" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header><div class="demo"><span>Cada resumen llega al abrir el enlace que te mandan.</span><button data-act="paste">Pegar código</button></div>';
   if(!mem.length) return head+'<div class="empty">Todavía no recibiste resúmenes.<br>Cuando un integrante toque “Enviar” y abras su enlace, aparece acá.</div>';
   return head
@@ -369,14 +378,17 @@ function viewEquipo(){
   +'<section class="stats"><div><b>'+rows.length+'</b><span>integrantes</span></div><div><b>'+T.c+'</b><span>donaciones</span></div><div><b>'+money(T.m)+'</b><span>recaudado</span></div></section>'
   +'<section class="stats"><div><b>'+num1(T.d?T.c/T.d:0)+'</b><span>por día trabajado</span></div><div><b>'+money(T.c?T.m/T.c:0)+'</b><span>aporte promedio</span></div><div><b>'+(T.c?Math.round(T.s*100/T.c):0)+'%</b><span>socios mensuales</span></div></section>'
   +payBlock({credit:T.cr,debit:T.db,count:T.c})
-  +'<section class="goal"><div class="goal-top"><h3>Meta del equipo</h3><span class="big">'+T.c+' <small>/ '+T.g+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><span class="muted small">Suma de las metas de donaciones de cada integrante.</span></section>'
+  +'<div class="sec-head"><h2>Metas del equipo</h2><span class="muted small">'+goalNote+'</span></div>'
+  +goalCard({act:'tgoal',key:'count',label:'Donaciones',value:T.c,goal:Math.max(TG.g.count,1),fmt:x=>String(x)})
+  +goalCard({act:'tgoal',key:'amount',label:'Recaudado',value:T.m,goal:Math.max(TG.g.amount,1),fmt:money})
+  +goalCard({act:'tgoal',key:'days',label:'Días trabajados',value:T.d,goal:Math.max(TG.g.days,1),fmt:x=>String(x),unit:' días'})
   +'<div class="sec-head"><h2>Donaciones por día</h2></div><section class="cal"><div class="bars" role="img" aria-label="Donaciones del equipo por día">'+per.map((v,i)=>'<i title="Día '+(i+1)+': '+v+'" style="height:'+Math.max(v/mx*100,3)+'%"></i>').join('')+'</div><div class="axis"><span>1</span><span>'+dim+'</span></div></section>'
   +'<div class="sec-head"><h2>Por integrante</h2><span class="muted small">tocá uno para ver el detalle</span></div>'
   +rows.map((r,i)=>'<div class="row"'+(r.id==='yo'?'':' role="button" tabindex="0" data-act="member" data-id="'+esc(r.id)+'" style="cursor:pointer"')+'><div class="dbox"><b>'+(i+1)+'</b><span>puesto</span></div><div class="who"><b>'+esc(r.name)+'</b><span>'+pl(r.st.count,'donación','donaciones')+' · '+pl(r.st.days,'día','días')+' · '+num1(r.st.days?r.st.count/r.st.days:0)+'/día · act. '+dm(r.when)+'</span><div class="bar mini"><i style="width:'+(r.goal?Math.min(r.st.count/r.goal,1)*100:0)+'%"></i></div></div><span class="amt">'+money(r.st.amount)+'</span></div>').join('');
 }
 function goalCard(o){
   const pct=Math.min(o.value/o.goal,1)*100, left=Math.max(o.goal-o.value,0);
-  return '<section class="goal"><div class="goal-top"><h3>'+o.label+'</h3><span class="big">'+o.fmt(o.value)+' <small>/ '+o.fmt(o.goal)+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="goal-foot"><span class="muted">'+(left>0?'Faltan '+o.fmt(left)+(o.unit||''):'Meta cumplida')+'</span><div class="stepper"><button data-act="goal" data-key="'+o.key+'" data-dir="-1" aria-label="Bajar meta de '+o.label.toLowerCase()+'">−</button><span>Meta</span><button data-act="goal" data-key="'+o.key+'" data-dir="1" aria-label="Subir meta de '+o.label.toLowerCase()+'">+</button></div></div></section>';
+  return '<section class="goal"><div class="goal-top"><h3>'+o.label+'</h3><span class="big">'+o.fmt(o.value)+' <small>/ '+o.fmt(o.goal)+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="goal-foot"><span class="muted">'+(left>0?'Faltan '+o.fmt(left)+(o.unit||''):'Meta cumplida')+'</span><div class="stepper"><button data-act="'+(o.act||'goal')+'" data-key="'+o.key+'" data-dir="-1" aria-label="Bajar meta de '+o.label.toLowerCase()+'">−</button><span>Meta</span><button data-act="'+(o.act||'goal')+'" data-key="'+o.key+'" data-dir="1" aria-label="Subir meta de '+o.label.toLowerCase()+'">+</button></div></div></section>';
 }
 function viewMetas(){
   const n=new Date(), st=monthStats(n.getFullYear(),n.getMonth()), g=state.goals;
@@ -525,6 +537,15 @@ document.addEventListener('click',e=>{
   if(a==='savename'){
     const v=((s&&s.value)||'').trim().slice(0,40); if(!v) return;
     state.name=v; ui.sheet=null; persist(); return render();
+  }
+  if(a==='tgoal'){
+    const k=el.dataset.key, dir=Number(el.dataset.dir), {y,m}=ui.tm, key=y+'-'+pad(m+1);
+    const cfg={count:{step:5,min:1,max:5000},amount:{step:100000,min:50000,max:500000000},days:{step:5,min:1,max:1000}}[k]; if(!cfg) return;
+    const cur=effTeamGoal(y,m).g, all=teamGoals(), g={count:cur.count,amount:cur.amount,days:cur.days};
+    g[k]=Math.min(cfg.max,Math.max(cfg.min,g[k]+dir*cfg.step));
+    ['count','amount','days'].forEach(x=>{g[x]=Math.max(g[x],1);});
+    all[key]=g; try{localStorage.setItem(GKEY,JSON.stringify(all));}catch(e){}
+    return render();
   }
   if(a==='goal'){
     const k=el.dataset.key, dir=Number(el.dataset.dir), g=state.goals;
