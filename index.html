@@ -218,7 +218,7 @@ function importCode(x){
     Object.keys(p.worked||{}).forEach(k=>{if(DRE.test(k)&&p.worked[k])w[k]=true;});
     if(!(o[p.id]&&o[p.id].t>=t)) o[p.id]={t:t,d:{
       name:String(p.name||'').slice(0,40),worked:w,goals:{count:+g.count||0,amount:+g.amount||0,days:+g.days||0},
-      donations:p.donations.filter(d=>d&&DRE.test(d.date)&&isFinite(d.amount)).map(d=>({id:String(d.id||''),date:d.date,time:String(d.time||''),amount:+d.amount,kind:d.kind==='unica'?'unica':'mensual',donor:''}))
+      donations:p.donations.filter(d=>d&&DRE.test(d.date)&&isFinite(d.amount)).map(d=>({id:String(d.id||''),date:d.date,time:String(d.time||''),amount:+d.amount,kind:d.kind==='unica'?'unica':'mensual',pay:d.pay==='credito'||d.pay==='debito'?d.pay:'',donor:''}))
     }};
     localStorage.setItem(TKEY,JSON.stringify(o));
     return String(p.name||'Integrante').slice(0,40);
@@ -228,7 +228,7 @@ async function sendReport(){
   if(!state.name){ ui.sheet={type:'name',value:''}; toast('Poné tu nombre y volvé a enviar.'); return render(); }
   const c=new Date(Date.now()-62*864e5), lim=c.getFullYear()+'-'+pad(c.getMonth()+1)+'-'+pad(c.getDate());
   const w={}; Object.keys(state.worked).forEach(k=>{if(k>=lim&&state.worked[k])w[k]=1;});
-  const url=location.href.split('#')[0]+'#eq='+enc({v:1,id:memberId(),name:state.name,t:Date.now(),goals:state.goals,worked:w,donations:state.donations.filter(d=>d.date>=lim).map(d=>({id:d.id,date:d.date,time:d.time,amount:d.amount,kind:d.kind}))});
+  const url=location.href.split('#')[0]+'#eq='+enc({v:1,id:memberId(),name:state.name,t:Date.now(),goals:state.goals,worked:w,donations:state.donations.filter(d=>d.date>=lim).map(d=>({id:d.id,date:d.date,time:d.time,amount:d.amount,kind:d.kind,pay:d.pay||''}))});
   try{ if(navigator.share){ await navigator.share({title:'Mi resumen',text:'Mi resumen para el equipo:',url:url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
   try{ await navigator.clipboard.writeText(url); toast('Enlace copiado. Pegalo en el chat de tu líder.'); }
   catch(e){ window.prompt('Copiá este enlace y mandáselo a tu líder',url); }
@@ -258,13 +258,22 @@ function monthStats(y,m,src){
   const ds=src.donations.filter(d=>d.date.startsWith(pre));
   const days=new Set(ds.map(d=>d.date));
   Object.keys(src.worked||{}).forEach(k=>{if(k.startsWith(pre)&&src.worked[k])days.add(k)});
-  return {count:ds.length,amount:ds.reduce((a,d)=>a+d.amount,0),days:days.size,dayList:Array.from(days).sort()};
+  return {count:ds.length,credit:ds.filter(d=>d.pay==='credito').length,debit:ds.filter(d=>d.pay==='debito').length,amount:ds.reduce((a,d)=>a+d.amount,0),days:days.size,dayList:Array.from(days).sort()};
 }
 
 /* ---------- piezas ---------- */
+const PAY={credito:'Crédito',debito:'Débito'};
+function payBlock(st){
+  const n=st.credit+st.debit, un=st.count-n, pc=v=>n?Math.round(v*100/n):0;
+  const c=[[pc(st.credit)+'%','Crédito · '+st.credit],[pc(st.debit)+'%','Débito · '+st.debit]];
+  if(un>0) c.push([String(un),'Sin dato']);
+  return '<div class="sec-head"><h2>Medio de pago</h2><span class="muted small">'+(n?'sobre '+pl(n,'donación','donaciones'):'sin datos todavía')+'</span></div>'
+  +'<section class="stats" style="grid-template-columns:repeat('+c.length+',1fr)">'+c.map(x=>'<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('')+'</section>';
+}
+function saveState(s){ return !(s.amount>0)?[true,'Elegí un monto']:!s.pay?[true,'Elegí crédito o débito']:[false,'Guardar '+money(s.amount)]; }
 function donRow(d){
   const ini=d.donor?esc(Array.from(d.donor.trim())[0].toUpperCase()):ICON.heart;
-  return '<div class="row"><div class="ico">'+ini+'</div><div class="who"><b>'+(d.donor?esc(d.donor):'Sin nombre')+'</b><span>'+(d.kind==='mensual'?'Socio mensual':'Aporte único')+(d.time?' · '+d.time:'')+'</span></div><span class="amt">'+money(d.amount)+'</span><button class="x" data-act="del" data-id="'+d.id+'" aria-label="Eliminar donación">'+ICON.trash+'</button></div>';
+  return '<div class="row"><div class="ico">'+ini+'</div><div class="who"><b>'+(d.donor?esc(d.donor):'Sin nombre')+'</b><span>'+(d.kind==='mensual'?'Socio mensual':'Aporte único')+(PAY[d.pay]?' · '+PAY[d.pay]:'')+(d.time?' · '+d.time:'')+'</span></div><span class="amt">'+money(d.amount)+'</span><button class="x" data-act="del" data-id="'+d.id+'" aria-label="Eliminar donación">'+ICON.trash+'</button></div>';
 }
 function workedRow(date,hint,hintOn){
   const has=donationsOn(date).length>0, on=isWorked(date);
@@ -307,6 +316,7 @@ function viewMes(){
   }).join('');
   return '<header class="monthnav"><button class="navbtn" data-act="prev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Tu bitácora del mes</p></div><button class="navbtn" data-act="next" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header>'
   +'<section class="stats"><div><b>'+st.days+'</b><span>días trabajados</span></div><div><b>'+st.count+'</b><span>donaciones</span></div><div><b>'+money(st.amount)+'</b><span>recaudado</span></div></section>'
+  +payBlock(st)
   +'<section class="cal"><div class="calgrid">'+['L','M','M','J','V','S','D'].map(x=>'<div class="dow">'+x+'</div>').join('')+cells+'</div></section>'
   +'<p class="legend">Cada día muestra cuántas donaciones anotaste. Tocá un día para verlo o completarlo.</p>'
   +'<div class="sec-head"><h2>Día por día</h2></div>'
@@ -316,7 +326,7 @@ function viewMes(){
 function viewEquipo(){
   const {y,m}=ui.tm, n=new Date(), cur=n.getFullYear()*12+n.getMonth(), pre=y+'-'+pad(m+1)+'-', dim=new Date(y,m+1,0).getDate(), mem=teamList();
   const rows=mem.map(t=>{const g=t.d.goals||{};return {when:t.t,name:t.d.name||'Integrante',st:monthStats(y,m,t.d),goal:g.count||0,mens:t.d.donations.filter(d=>d.date.startsWith(pre)&&d.kind==='mensual').length};}).sort((a,b)=>b.st.count-a.st.count);
-  const T=rows.reduce((a,r)=>({c:a.c+r.st.count,m:a.m+r.st.amount,d:a.d+r.st.days,g:a.g+r.goal,s:a.s+r.mens}),{c:0,m:0,d:0,g:0,s:0});
+  const T=rows.reduce((a,r)=>({c:a.c+r.st.count,m:a.m+r.st.amount,d:a.d+r.st.days,g:a.g+r.goal,s:a.s+r.mens,cr:a.cr+r.st.credit,db:a.db+r.st.debit}),{c:0,m:0,d:0,g:0,s:0,cr:0,db:0});
   const per=Array(dim).fill(0); mem.forEach(t=>t.d.donations.forEach(d=>{if(d.date.startsWith(pre))per[+d.date.slice(8)-1]++;}));
   const mx=Math.max(1,...per), pct=T.g?Math.min(T.c/T.g,1)*100:0;
   const head='<header class="monthnav"><button class="navbtn" data-act="tprev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Panel del equipo · solo vos lo ves</p></div><button class="navbtn" data-act="tnext" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header><div class="demo"><span>Cada resumen llega al abrir el enlace que te mandan.</span><button data-act="paste">Pegar código</button></div>';
@@ -324,6 +334,7 @@ function viewEquipo(){
   return head
   +'<section class="stats"><div><b>'+rows.length+'</b><span>integrantes</span></div><div><b>'+T.c+'</b><span>donaciones</span></div><div><b>'+money(T.m)+'</b><span>recaudado</span></div></section>'
   +'<section class="stats"><div><b>'+num1(T.d?T.c/T.d:0)+'</b><span>por día trabajado</span></div><div><b>'+money(T.c?T.m/T.c:0)+'</b><span>aporte promedio</span></div><div><b>'+(T.c?Math.round(T.s*100/T.c):0)+'%</b><span>socios mensuales</span></div></section>'
+  +payBlock({credit:T.cr,debit:T.db,count:T.c})
   +'<section class="goal"><div class="goal-top"><h3>Meta del equipo</h3><span class="big">'+T.c+' <small>/ '+T.g+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><span class="muted small">Suma de las metas de donaciones de cada integrante.</span></section>'
   +'<div class="sec-head"><h2>Donaciones por día</h2></div><section class="cal"><div class="bars" role="img" aria-label="Donaciones del equipo por día">'+per.map((v,i)=>'<i title="Día '+(i+1)+': '+v+'" style="height:'+Math.max(v/mx*100,3)+'%"></i>').join('')+'</div><div class="axis"><span>1</span><span>'+dim+'</span></div></section>'
   +'<div class="sec-head"><h2>Por integrante</h2><span class="muted small">según donaciones</span></div>'
@@ -366,14 +377,16 @@ function sheetPaste(){
 }
 function sheetAdd(){
   const s=ui.sheet, dt=parse(s.date), isToday=s.date===today();
+  const sv=saveState(s);
   const chips=[5000,10000,15000,20000].map(v=>'<button class="chip'+(s.amount===v&&!s.custom?' on':'')+'" data-act="amt" data-v="'+v+'">'+money(v)+'</button>').join('');
   return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Nueva donación"><div class="grab"></div>'
   +'<h2>Nueva donación</h2><p class="sub">'+(isToday?'Se anota en el día de hoy.':'Se anota el '+DIA[dt.getDay()]+' '+dt.getDate()+' de '+MES[dt.getMonth()]+'.')+'</p>'
   +'<div class="chips">'+chips+'</div>'
   +'<input class="inp" id="amt-custom" inputmode="numeric" autocomplete="off" placeholder="Otro monto" aria-label="Otro monto" value="'+esc(s.custom)+'">'
+  +'<span class="f">Medio de pago</span><div class="seg" role="radiogroup" aria-label="Medio de pago"><button role="radio" aria-checked="'+(s.pay==='credito')+'" data-act="pay" data-v="credito">Crédito</button><button role="radio" aria-checked="'+(s.pay==='debito')+'" data-act="pay" data-v="debito">Débito</button></div>'
   +'<span class="f">Tipo de aporte</span><div class="seg" role="radiogroup" aria-label="Tipo de aporte"><button role="radio" aria-checked="'+(s.kind==='mensual')+'" data-act="kind" data-v="mensual">Socio mensual</button><button role="radio" aria-checked="'+(s.kind==='unica')+'" data-act="kind" data-v="unica">Aporte único</button></div>'
   +'<label class="f" for="donor">Nombre <small>(opcional)</small></label><input class="inp" id="donor" type="text" autocomplete="off" placeholder="Ej: Marcela R." value="'+esc(s.name)+'">'
-  +'<button class="cta in-sheet" id="save-btn" data-act="save" '+(s.amount>0?'':'disabled')+'>'+(s.amount>0?'Guardar '+money(s.amount):'Elegí un monto')+'</button>'
+  +'<button class="cta in-sheet" id="save-btn" data-act="save" '+(sv[0]?'disabled':'')+'>'+sv[1]+'</button>'
   +'<button class="link" data-act="closebtn">Cancelar</button></div></div>';
 }
 
@@ -403,14 +416,15 @@ document.addEventListener('click',e=>{
   if(a==='close'){ if(e.target!==el) return; ui.sheet=null; return render(); }
   if(a==='closebtn'){ ui.sheet=null; return render(); }
   if(a==='tab'){ ui.tab=el.dataset.tab; render(); window.scrollTo(0,0); return; }
-  if(a==='add'){ ui.sheet={type:'add',date:el.dataset.date||today(),amount:null,custom:'',kind:'mensual',name:''}; return render(); }
+  if(a==='add'){ ui.sheet={type:'add',date:el.dataset.date||today(),amount:null,custom:'',kind:'mensual',pay:null,name:''}; return render(); }
   if(a==='day'){ ui.sheet={type:'day',date:el.dataset.date}; return render(); }
   if(a==='amt'){ s.amount=Number(el.dataset.v); s.custom=''; return render(); }
+  if(a==='pay'){ s.pay=el.dataset.v; return render(); }
   if(a==='kind'){ s.kind=el.dataset.v; return render(); }
   if(a==='save'){
-    if(!(s.amount>0)) return;
+    if(!(s.amount>0)||!s.pay) return;
     const n=new Date(), donor=(s.name||'').trim();
-    state.donations.push({id:uid(),date:s.date,time:s.date===today()?pad(n.getHours())+':'+pad(n.getMinutes()):'',amount:s.amount,kind:s.kind,donor:donor});
+    state.donations.push({id:uid(),date:s.date,time:s.date===today()?pad(n.getHours())+':'+pad(n.getMinutes()):'',amount:s.amount,kind:s.kind,pay:s.pay,donor:donor});
     const id=state.donations[state.donations.length-1].id, amt=s.amount;
     ui.sheet=null; persist();
     toast('Donación anotada · '+money(amt),()=>{state.donations=state.donations.filter(d=>d.id!==id);});
@@ -466,7 +480,7 @@ document.addEventListener('input',e=>{
     e.target.value=digits; s.custom=digits; s.amount=digits?Number(digits):null;
     document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
     const b=document.getElementById('save-btn');
-    if(b){ b.disabled=!(s.amount>0); b.textContent=s.amount>0?'Guardar '+money(s.amount):'Elegí un monto'; }
+    if(b){ const v=saveState(s); b.disabled=v[0]; b.textContent=v[1]; }
   }
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; render(); } });
