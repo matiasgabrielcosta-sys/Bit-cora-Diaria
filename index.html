@@ -12,7 +12,6 @@
   --bg:#EDF1EE; --card:#FFFFFF; --text:#10201E; --muted:#5A726D; --line:#D6E0DC; --mint:#D3EBE1;
   --hero:#0E2F2C; --on-hero:#F1F7F4; --hero-muted:#A5C2BB;
   --sun:#FFC83D; --sun-deep:#D9A21B; --on-sun:#2A1F00; --ok:#1F8A63;
-  --pay-a:#2B7FD4; --pay-b:#E08A2E; --pay-c:#9AAFAA;
   --disp:'Bricolage Grotesque','Figtree',system-ui,sans-serif;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -21,12 +20,12 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0A1B19; --card:#122A27; --text:#EAF3F0; --muted:#93AEA8; --line:#1F3D39; --mint:#1B4A42;
-    --hero:#0F3B36; --ok:#37B283; --pay-a:#63ACF2; --pay-b:#F2B45E; --pay-c:#7E9993; color-scheme:dark;
+    --hero:#0F3B36; --ok:#37B283; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0A1B19; --card:#122A27; --text:#EAF3F0; --muted:#93AEA8; --line:#1F3D39; --mint:#1B4A42;
-  --hero:#0F3B36; --ok:#37B283; --pay-a:#63ACF2; --pay-b:#F2B45E; --pay-c:#7E9993; color-scheme:dark;
+  --hero:#0F3B36; --ok:#37B283; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
@@ -88,7 +87,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .empty{text-align:center;color:var(--muted);padding:22px 14px;background:var(--card);border-radius:16px;font-size:15px}
 
 .tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));z-index:20}
-.tabs-in{max-width:460px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tabs-in{max-width:460px;margin:0 auto;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.tab[hidden]{display:none}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;border-radius:14px;color:var(--muted);font-weight:600;font-size:13px}
 .tab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tab[aria-current=page]{color:var(--text);background:var(--mint)}
@@ -149,42 +149,11 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:#0E2F2C;color:#F1F7F4;padding:12px 16px;border-radius:16px;display:flex;gap:16px;align-items:center;z-index:60;width:max-content;max-width:calc(100% - 32px);font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .toast button{color:var(--sun);font-weight:800}
 
-.split{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px}
-.split h3{font-size:18px;font-weight:700;margin-bottom:2px}
-.split .cap{margin:0 0 14px;color:var(--muted);font-size:13px}
-.split-in{display:grid;grid-template-columns:122px 1fr;gap:16px;align-items:center}
-.donut{position:relative;width:122px;height:122px}
-.donut .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
-.donut .c b{font:800 24px/1 var(--disp)}
-.donut .c span{font-size:11px;color:var(--muted)}
-.keys{display:grid;gap:10px}
-.key{display:flex;align-items:center;gap:9px}
-.key .dot{width:12px;height:12px;border-radius:4px;flex:none}
-.key .kt{flex:1;min-width:0}
-.key .kt b{display:block;font-weight:700;font-size:15px}
-.key .kt span{font-size:12px;color:var(--muted)}
-.key .kp{font:800 18px var(--disp)}
-
-.zona{background:var(--card);border-radius:20px;padding:16px;margin-top:12px}
-.zona h3{font-size:18px;font-weight:700;margin-bottom:4px}
-.zona p{margin:0 0 14px;color:var(--muted);font-size:14px}
-.danger{width:100%;min-height:52px;border-radius:14px;border:2px solid var(--line);font-weight:800;color:#C0392B}
-.danger.solid{background:#C0392B;color:#fff;border-color:#C0392B}
-:root[data-theme="dark"] .danger,:root:not([data-theme="light"]) .danger{color:#FF9B8A}
-:root[data-theme="dark"] .danger.solid,:root:not([data-theme="light"]) .danger.solid{background:#B33A2B;color:#fff;border-color:#B33A2B}
-
-/* ---------- alta de usuario ---------- */
-.login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 16px}
-.login-card{width:100%;max-width:400px}
-.login .mark{width:60px;height:60px;border-radius:20px;background:var(--sun);color:var(--on-sun);display:grid;place-items:center;margin-bottom:18px}
-.login h1{font-size:30px;font-weight:800;line-height:1.1}
-.login .sub{margin:8px 0 22px;color:var(--muted);font-size:16px}
-.login .err{margin:10px 2px 0;color:#C0392B;font-weight:600;font-size:14px;min-height:20px}
-:root[data-theme="dark"] .login .err,:root:not([data-theme="light"]) .login .err{color:#FF9B8A}
-.login .foot{margin:16px 2px 0;color:var(--muted);font-size:13px;text-align:center}
-body.is-login .tabs{display:none}
-body.is-login #app{padding-bottom:24px}
-
+.bars{display:flex;align-items:flex-end;gap:2px;height:96px}
+.bars i{flex:1;background:var(--ok);border-radius:3px 3px 0 0;min-height:2px}
+.axis{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px}
+.bar.mini{height:8px;margin:6px 0 0}
+.lead{background:var(--mint);border-radius:12px;padding:8px 12px;font-size:13px;margin:-6px 0 14px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -196,6 +165,7 @@ body.is-login #app{padding-bottom:24px}
   <button class="tab" data-act="tab" data-tab="hoy"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>Hoy</button>
   <button class="tab" data-act="tab" data-tab="mes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Bitácora</button>
   <button class="tab" data-act="tab" data-tab="metas"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg>Metas</button>
+  <button class="tab" id="tab-team" data-act="tab" data-tab="equipo" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.5"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15.5 14.3c3 0 5.5 2 5.5 5.7"/></svg>Equipo</button>
 </div></nav>
 
 <script>
@@ -214,8 +184,6 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const pl=(n,a,b)=>n+' '+(n===1?a:b);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const ini1=s=>s?Array.from(s.trim())[0].toUpperCase():'';
-const iniciales=u=>(ini1(u.first)+ini1(u.last))||'?';
 
 const ICON={
   plus:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>',
@@ -224,58 +192,79 @@ const ICON={
 };
 
 /* ---------- datos ---------- */
-function seed(){
-  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
-  let s=y*100+m;
-  const rnd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-  const amounts=[5000,10000,10000,15000,20000,5000];
-  const names=['Marcela R.','Jorge P.','Analía G.','Tomás B.','Silvia M.','Hernán D.','Paula C.','Rubén A.','Camila S.','Nora F.','','',''];
-  const donations=[], worked={};
-  for(let d=1; d<=now.getDate(); d++){
-    const dt=new Date(y,m,d), wd=dt.getDay(), isToday=d===now.getDate(), ds=ymd(dt);
-    const works=isToday || (wd>=1&&wd<=5) || (wd===6&&d%2===0);
-    if(!works) continue;
-    const n=isToday?1:Math.floor(rnd()*5);
-    if(n===0) worked[ds]=true;
-    for(let i=0;i<n;i++){
-      donations.push({
-        id:uid()+i+d, date:ds,
-        time:pad(10+Math.floor(rnd()*7))+':'+pad(Math.floor(rnd()*60)),
-        amount:amounts[Math.floor(rnd()*amounts.length)],
-        kind:rnd()<.75?'mensual':'unica',
-        pago:rnd()<.62?'credito':'debito',
-        donor:names[Math.floor(rnd()*names.length)]
-      });
-    }
-  }
-  return {user:null, donations, worked, goals:{count:40,amount:450000,days:20}, demo:true};
-}
+function empty(){ return {donations:[],worked:{},goals:{count:40,amount:450000,days:20}}; }
 function load(){
-  try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.donations&&s.goals){if(!('user' in s))s.user=null;return s;}}}catch(e){}
-  return seed();
+  try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.donations&&s.goals&&!s.demo)return s;}}catch(e){}
+  return empty();
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+let leader=false;
+const TKEY='bitacora-equipo-v1', DRE=/^\d{4}-\d\d-\d\d$/;
+const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const dec=c=>JSON.parse(decodeURIComponent(escape(atob(c.replace(/-/g,'+').replace(/_/g,'/')))));
+const dm=t=>{const d=new Date(t);return d.getDate()+'/'+(d.getMonth()+1)};
+function teamStore(){try{return JSON.parse(localStorage.getItem(TKEY))||{};}catch(e){return {};}}
+function teamList(){
+  const o=teamStore(), a=Object.keys(o).map(id=>({id:id,d:o[id].d,t:o[id].t}));
+  if(state.name||state.donations.length) a.push({id:'yo',d:{donations:state.donations,worked:state.worked,goals:state.goals,name:state.name||'Yo (líder)'},t:Date.now()});
+  return a;
+}
+function memberId(){ if(!state.mid){state.mid='m'+Math.random().toString(36).slice(2,9)+Date.now().toString(36);persist();} return state.mid; }
+function importCode(x){
+  try{
+    const p=dec(String(x).trim().split('#eq=').pop().trim());
+    if(!p||p.v!==1||!p.id||!Array.isArray(p.donations)) return null;
+    const o=teamStore(), t=+p.t||Date.now(), g=p.goals||{}, w={};
+    Object.keys(p.worked||{}).forEach(k=>{if(DRE.test(k)&&p.worked[k])w[k]=true;});
+    if(!(o[p.id]&&o[p.id].t>=t)) o[p.id]={t:t,d:{
+      name:String(p.name||'').slice(0,40),worked:w,goals:{count:+g.count||0,amount:+g.amount||0,days:+g.days||0},
+      donations:p.donations.filter(d=>d&&DRE.test(d.date)&&isFinite(d.amount)).map(d=>({id:String(d.id||''),date:d.date,time:String(d.time||''),amount:+d.amount,kind:d.kind==='unica'?'unica':'mensual',donor:''}))
+    }};
+    localStorage.setItem(TKEY,JSON.stringify(o));
+    return String(p.name||'Integrante').slice(0,40);
+  }catch(e){return null;}
+}
+async function sendReport(){
+  if(!state.name){ ui.sheet={type:'name',value:''}; toast('Poné tu nombre y volvé a enviar.'); return render(); }
+  const c=new Date(Date.now()-62*864e5), lim=c.getFullYear()+'-'+pad(c.getMonth()+1)+'-'+pad(c.getDate());
+  const w={}; Object.keys(state.worked).forEach(k=>{if(k>=lim&&state.worked[k])w[k]=1;});
+  const url=location.href.split('#')[0]+'#eq='+enc({v:1,id:memberId(),name:state.name,t:Date.now(),goals:state.goals,worked:w,donations:state.donations.filter(d=>d.date>=lim).map(d=>({id:d.id,date:d.date,time:d.time,amount:d.amount,kind:d.kind}))});
+  try{ if(navigator.share){ await navigator.share({title:'Mi resumen',text:'Mi resumen para el equipo:',url:url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(url); toast('Enlace copiado. Pegalo en el chat de tu líder.'); }
+  catch(e){ window.prompt('Copiá este enlace y mandáselo a tu líder',url); }
+  render();
+}
+function handleHash(){
+  const h=location.hash; if(!h) return;
+  if(h.indexOf('#lider')===0){ try{localStorage.setItem('bitacora-lider','1');}catch(e){} leader=true; toast('Modo líder activado en este celular.'); }
+  else if(h.indexOf('#eq=')===0){
+    if(leader){ const n=importCode(h); toast(n?'Resumen de '+n+' actualizado.':'No pude leer ese enlace.'); if(n) ui.tab='equipo'; }
+    else toast('Ese enlace es para el líder. Abrí una vez el enlace con #lider en este celular.');
+  } else return;
+  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+  document.getElementById('tab-team').hidden=!leader; render();
+}
 
 let state=load();
 const nowD=new Date();
-let ui={tab:'hoy',month:{y:nowD.getFullYear(),m:nowD.getMonth()},sheet:null,toast:null,login:{first:'',last:'',err:''}};
+let ui={tab:'hoy',month:{y:nowD.getFullYear(),m:nowD.getMonth()},tm:{y:nowD.getFullYear(),m:nowD.getMonth()},sheet:null,toast:null};
 let toastTimer=null;
 
 const donationsOn=date=>state.donations.filter(d=>d.date===date).sort((a,b)=>(b.time||'').localeCompare(a.time||''));
 const isWorked=date=>!!state.worked[date]||state.donations.some(d=>d.date===date);
-function monthStats(y,m){
+function monthStats(y,m,src){
+  src=src||state;
   const pre=y+'-'+pad(m+1)+'-';
-  const ds=state.donations.filter(d=>d.date.startsWith(pre));
+  const ds=src.donations.filter(d=>d.date.startsWith(pre));
   const days=new Set(ds.map(d=>d.date));
-  Object.keys(state.worked).forEach(k=>{if(k.startsWith(pre)&&state.worked[k])days.add(k)});
+  Object.keys(src.worked||{}).forEach(k=>{if(k.startsWith(pre)&&src.worked[k])days.add(k)});
   return {count:ds.length,amount:ds.reduce((a,d)=>a+d.amount,0),days:days.size,dayList:Array.from(days).sort()};
 }
 
 /* ---------- piezas ---------- */
-function pagoLabel(p){ return p==='debito'?'Débito':p==='credito'?'Crédito':'Sin medio'; }
 function donRow(d){
   const ini=d.donor?esc(Array.from(d.donor.trim())[0].toUpperCase()):ICON.heart;
-  return '<div class="row"><div class="ico">'+ini+'</div><div class="who"><b>'+(d.donor?esc(d.donor):'Sin nombre')+'</b><span>'+(d.kind==='mensual'?'Socio mensual':'Aporte único')+' · '+pagoLabel(d.pago)+(d.time?' · '+d.time:'')+'</span></div><span class="amt">'+money(d.amount)+'</span><button class="x" data-act="del" data-id="'+d.id+'" aria-label="Eliminar donación">'+ICON.trash+'</button></div>';
+  return '<div class="row"><div class="ico">'+ini+'</div><div class="who"><b>'+(d.donor?esc(d.donor):'Sin nombre')+'</b><span>'+(d.kind==='mensual'?'Socio mensual':'Aporte único')+(d.time?' · '+d.time:'')+'</span></div><span class="amt">'+money(d.amount)+'</span><button class="x" data-act="del" data-id="'+d.id+'" aria-label="Eliminar donación">'+ICON.trash+'</button></div>';
 }
 function workedRow(date,hint,hintOn){
   const has=donationsOn(date).length>0, on=isWorked(date);
@@ -285,65 +274,21 @@ function ring(pct,value,total){
   const R=56,C=2*Math.PI*R,off=C*(1-pct);
   return '<div class="ring" role="img" aria-label="'+value+' de '+total+' donaciones"><svg viewBox="0 0 140 140" width="132" height="132" aria-hidden="true"><circle cx="70" cy="70" r="56" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="14"/><circle cx="70" cy="70" r="56" fill="none" stroke="var(--sun)" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" transform="rotate(-90 70 70)" opacity="'+(pct>0?1:0)+'"/></svg><div class="c"><b>'+value+'</b><small>de '+total+'</small></div></div>';
 }
-function demoBar(){
-  return '<div class="demo"><span>Estás viendo datos de ejemplo.</span><button data-act="reset">Empezar de cero</button></div>';
-}
 
 /* ---------- vistas ---------- */
-function viewLogin(){
-  const l=ui.login;
-  return '<div class="login"><div class="login-card">'
-  +'<div class="mark" aria-hidden="true">'+ICON.heart+'</div>'
-  +'<h1>Bitácora de donaciones</h1>'
-  +'<p class="sub">Antes de empezar, contanos quién sos. Se guarda solo en este dispositivo.</p>'
-  +'<label class="f" for="login-first">Nombre</label>'
-  +'<input class="inp" id="login-first" type="text" autocomplete="given-name" placeholder="Ej: Lucía" value="'+esc(l.first)+'">'
-  +'<label class="f" for="login-last">Apellido</label>'
-  +'<input class="inp" id="login-last" type="text" autocomplete="family-name" placeholder="Ej: Ferreyra" value="'+esc(l.last)+'">'
-  +'<p class="err" role="alert">'+esc(l.err)+'</p>'
-  +'<button class="cta" data-act="login">Entrar</button>'
-  +'<p class="foot">Vas a poder cambiar estos datos más adelante desde Metas.</p>'
-  +'</div></div>';
-}
-
+const nm=()=>state.name||'';
 function viewHoy(){
   const n=new Date(), t=today(), st=monthStats(n.getFullYear(),n.getMonth()), g=state.goals;
   const left=Math.max(g.count-st.count,0), list=donationsOn(t), sum=list.reduce((a,d)=>a+d.amount,0);
-  const u=state.user||{first:'',last:''};
-  return '<header class="top"><div><p>'+cap(DIA[n.getDay()])+' '+n.getDate()+' de '+MES[n.getMonth()]+'</p><h1>Hola, '+esc(u.first)+'</h1></div><div class="avatar" aria-hidden="true" title="'+esc(u.first+' '+u.last)+'">'+esc(iniciales(u))+'</div></header>'
+  return '<header class="top"><div><p>'+cap(DIA[n.getDay()])+' '+n.getDate()+' de '+MES[n.getMonth()]+'</p><h1>Hola'+(nm()?', '+esc(nm().split(' ')[0]):'')+'</h1></div><button class="avatar" data-act="name" aria-label="Cambiar mi nombre">'+(nm()?esc(Array.from(nm())[0].toUpperCase()):ICON.heart)+'</button></header>'
+  +(state.name?'':'<div class="demo"><span>Poné tu nombre para que tu líder te vea.</span><button data-act="name">Agregar</button></div>')
   +'<section class="hero">'+ring(Math.min(st.count/g.count,1),st.count,g.count)
   +'<div><h2>'+(left>0?'Faltan '+pl(left,'donación','donaciones'):'Meta cumplida')+'</h2><p>'+(left>0?'para tu meta de '+g.count+' en '+MES[n.getMonth()]:'Llegaste a las '+g.count+' de '+MES[n.getMonth()])+'</p><p class="days">Días trabajados: '+st.days+' de '+g.days+'</p></div></section>'
   +'<button class="cta" data-act="add">'+ICON.plus+'Anotar donación</button>'
   +'<div class="sec-head"><h2>Hoy</h2><span class="muted small">'+(list.length?pl(list.length,'donación','donaciones')+' · '+money(sum):'')+'</span></div>'
   +workedRow(t,'Marcalo si saliste a trabajar aunque no hayas anotado nada.','Se marcó solo al anotar tu primera donación.')
-  +(list.length?list.map(donRow).join(''):'<div class="empty">Todavía no anotaste nada hoy.<br>Tocá el botón amarillo cuando consigas una donación.</div>');
-}
-
-function pagoSplit(y,m){
-  const pre=y+'-'+pad(m+1)+'-';
-  const ds=state.donations.filter(d=>d.date.startsWith(pre));
-  const keys=[{k:'credito',label:'Crédito',color:'var(--pay-a)'},{k:'debito',label:'Débito',color:'var(--pay-b)'},{k:'otro',label:'Sin medio cargado',color:'var(--pay-c)'}];
-  const g=keys.map(o=>{
-    const l=ds.filter(d=>(d.pago==='credito'||d.pago==='debito'?d.pago:'otro')===o.k);
-    return {label:o.label,color:o.color,count:l.length,amount:l.reduce((a,d)=>a+d.amount,0)};
-  }).filter(o=>o.count>0);
-  return {total:ds.length,groups:g};
-}
-function chartPagos(y,m){
-  const {total,groups}=pagoSplit(y,m);
-  if(!total) return '<section class="split"><h3>Crédito vs. débito</h3><p class="cap">Todavía no hay donaciones anotadas en este mes.</p></section>';
-  const R=52,C=2*Math.PI*R;
-  let acc=0,arcs='',keys='';
-  groups.forEach(o=>{
-    const frac=o.count/total, len=C*frac;
-    arcs+='<circle cx="62" cy="62" r="'+R+'" fill="none" stroke="'+o.color+'" stroke-width="18" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-C*acc)+'" transform="rotate(-90 62 62)"/>';
-    acc+=frac;
-    keys+='<div class="key"><span class="dot" style="background:'+o.color+'"></span><span class="kt"><b>'+o.label+'</b><span>'+pl(o.count,'donación','donaciones')+' · '+money(o.amount)+'</span></span><span class="kp">'+num1(frac*100)+'%</span></div>';
-  });
-  const desc=groups.map(o=>o.label+': '+num1(o.count/total*100)+' por ciento').join(', ');
-  return '<section class="split"><h3>Crédito vs. débito</h3><p class="cap">Sobre el total de '+pl(total,'donación','donaciones')+' de '+MES[m]+'.</p>'
-  +'<div class="split-in"><div class="donut" role="img" aria-label="Reparto por medio de pago. '+esc(desc)+'"><svg viewBox="0 0 124 124" width="122" height="122" aria-hidden="true"><circle cx="62" cy="62" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="18"/>'+arcs+'</svg><div class="c"><b>'+total+'</b><span>donaciones</span></div></div>'
-  +'<div class="keys">'+keys+'</div></div></section>';
+  +(list.length?list.map(donRow).join(''):'<div class="empty">Todavía no anotaste nada hoy.<br>Tocá el botón amarillo cuando consigas una donación.</div>')
+  +'<div class="demo" style="margin-top:22px"><span>Enviá tu resumen a tu líder.</span><button data-act="send">Enviar</button></div>';
 }
 
 function viewMes(){
@@ -362,13 +307,28 @@ function viewMes(){
   }).join('');
   return '<header class="monthnav"><button class="navbtn" data-act="prev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Tu bitácora del mes</p></div><button class="navbtn" data-act="next" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header>'
   +'<section class="stats"><div><b>'+st.days+'</b><span>días trabajados</span></div><div><b>'+st.count+'</b><span>donaciones</span></div><div><b>'+money(st.amount)+'</b><span>recaudado</span></div></section>'
-  +chartPagos(y,m)
   +'<section class="cal"><div class="calgrid">'+['L','M','M','J','V','S','D'].map(x=>'<div class="dow">'+x+'</div>').join('')+cells+'</div></section>'
   +'<p class="legend">Cada día muestra cuántas donaciones anotaste. Tocá un día para verlo o completarlo.</p>'
   +'<div class="sec-head"><h2>Día por día</h2></div>'
   +(rows||'<div class="empty">No hay días trabajados en este mes.</div>');
 }
 
+function viewEquipo(){
+  const {y,m}=ui.tm, n=new Date(), cur=n.getFullYear()*12+n.getMonth(), pre=y+'-'+pad(m+1)+'-', dim=new Date(y,m+1,0).getDate(), mem=teamList();
+  const rows=mem.map(t=>{const g=t.d.goals||{};return {when:t.t,name:t.d.name||'Integrante',st:monthStats(y,m,t.d),goal:g.count||0,mens:t.d.donations.filter(d=>d.date.startsWith(pre)&&d.kind==='mensual').length};}).sort((a,b)=>b.st.count-a.st.count);
+  const T=rows.reduce((a,r)=>({c:a.c+r.st.count,m:a.m+r.st.amount,d:a.d+r.st.days,g:a.g+r.goal,s:a.s+r.mens}),{c:0,m:0,d:0,g:0,s:0});
+  const per=Array(dim).fill(0); mem.forEach(t=>t.d.donations.forEach(d=>{if(d.date.startsWith(pre))per[+d.date.slice(8)-1]++;}));
+  const mx=Math.max(1,...per), pct=T.g?Math.min(T.c/T.g,1)*100:0;
+  const head='<header class="monthnav"><button class="navbtn" data-act="tprev" aria-label="Mes anterior">‹</button><div><h1>'+cap(MES[m])+' '+y+'</h1><p>Panel del equipo · solo vos lo ves</p></div><button class="navbtn" data-act="tnext" aria-label="Mes siguiente" '+(y*12+m>=cur?'disabled':'')+'>›</button></header><div class="demo"><span>Cada resumen llega al abrir el enlace que te mandan.</span><button data-act="paste">Pegar código</button></div>';
+  if(!mem.length) return head+'<div class="empty">Todavía no recibiste resúmenes.<br>Cuando un integrante toque “Enviar” y abras su enlace, aparece acá.</div>';
+  return head
+  +'<section class="stats"><div><b>'+rows.length+'</b><span>integrantes</span></div><div><b>'+T.c+'</b><span>donaciones</span></div><div><b>'+money(T.m)+'</b><span>recaudado</span></div></section>'
+  +'<section class="stats"><div><b>'+num1(T.d?T.c/T.d:0)+'</b><span>por día trabajado</span></div><div><b>'+money(T.c?T.m/T.c:0)+'</b><span>aporte promedio</span></div><div><b>'+(T.c?Math.round(T.s*100/T.c):0)+'%</b><span>socios mensuales</span></div></section>'
+  +'<section class="goal"><div class="goal-top"><h3>Meta del equipo</h3><span class="big">'+T.c+' <small>/ '+T.g+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><span class="muted small">Suma de las metas de donaciones de cada integrante.</span></section>'
+  +'<div class="sec-head"><h2>Donaciones por día</h2></div><section class="cal"><div class="bars" role="img" aria-label="Donaciones del equipo por día">'+per.map((v,i)=>'<i title="Día '+(i+1)+': '+v+'" style="height:'+Math.max(v/mx*100,3)+'%"></i>').join('')+'</div><div class="axis"><span>1</span><span>'+dim+'</span></div></section>'
+  +'<div class="sec-head"><h2>Por integrante</h2><span class="muted small">según donaciones</span></div>'
+  +rows.map((r,i)=>'<div class="row"><div class="dbox"><b>'+(i+1)+'</b><span>puesto</span></div><div class="who"><b>'+esc(r.name)+'</b><span>'+pl(r.st.count,'donación','donaciones')+' · '+pl(r.st.days,'día','días')+' · '+num1(r.st.days?r.st.count/r.st.days:0)+'/día · act. '+dm(r.when)+'</span><div class="bar mini"><i style="width:'+(r.goal?Math.min(r.st.count/r.goal,1)*100:0)+'%"></i></div></div><span class="amt">'+money(r.st.amount)+'</span></div>').join('');
+}
 function goalCard(o){
   const pct=Math.min(o.value/o.goal,1)*100, left=Math.max(o.goal-o.value,0);
   return '<section class="goal"><div class="goal-top"><h3>'+o.label+'</h3><span class="big">'+o.fmt(o.value)+' <small>/ '+o.fmt(o.goal)+'</small></span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="goal-foot"><span class="muted">'+(left>0?'Faltan '+o.fmt(left)+(o.unit||''):'Meta cumplida')+'</span><div class="stepper"><button data-act="goal" data-key="'+o.key+'" data-dir="-1" aria-label="Bajar meta de '+o.label.toLowerCase()+'">−</button><span>Meta</span><button data-act="goal" data-key="'+o.key+'" data-dir="1" aria-label="Subir meta de '+o.label.toLowerCase()+'">+</button></div></div></section>';
@@ -384,9 +344,7 @@ function viewMetas(){
   +goalCard({key:'count',label:'Donaciones',value:st.count,goal:g.count,fmt:x=>String(x)})
   +goalCard({key:'amount',label:'Recaudado',value:st.amount,goal:g.amount,fmt:money})
   +goalCard({key:'days',label:'Días trabajados',value:st.days,goal:g.days,fmt:x=>String(x),unit:' días'})
-  +'<section class="pace"><h3>'+title+'</h3><p>'+body+'</p></section>'
-  +'<div class="row switchrow" style="margin-top:12px"><div class="ico">'+esc(iniciales(state.user||{first:'',last:''}))+'</div><div class="who"><b>'+esc(((state.user||{}).first||'')+' '+((state.user||{}).last||''))+'</b><span>Sesión iniciada en este dispositivo</span></div><button class="link" style="margin:0;padding:8px 10px" data-act="logout">Cambiar</button></div>'
-  +'<section class="zona"><h3>Empezar de cero</h3><p>Borra todas las donaciones y los días trabajados de todos los meses, y deja las metas en sus valores iniciales.</p><button class="danger" data-act="wipe">Empezar de cero</button></section>';
+  +'<section class="pace"><h3>'+title+'</h3><p>'+body+'</p></section>';
 }
 
 /* ---------- hojas ---------- */
@@ -400,6 +358,12 @@ function sheetDay(){
   +(date<=today()?'<button class="cta in-sheet" data-act="add" data-date="'+date+'">'+ICON.plus+'Anotar donación</button>':'')
   +'<button class="link" data-act="closebtn">Cerrar</button></div></div>';
 }
+function sheetName(){
+  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Tu nombre"><div class="grab"></div><h2>Tu nombre</h2><p class="sub">Así te va a ver tu líder en el panel del equipo.</p><input class="inp" id="myname" type="text" autocomplete="off" maxlength="40" placeholder="Ej: Lucía P." aria-label="Tu nombre" value="'+esc(ui.sheet.value)+'"><button class="cta in-sheet" data-act="savename">Guardar</button><button class="link" data-act="closebtn">Cancelar</button></div></div>';
+}
+function sheetPaste(){
+  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Pegar código"><div class="grab"></div><h2>Pegar código</h2><p class="sub">Pegá el enlace que te mandó un integrante.</p><textarea class="inp" id="pastebox" rows="4" style="min-height:110px;padding:12px;font-size:15px" aria-label="Enlace o código"></textarea><button class="cta in-sheet" data-act="dopaste">Agregar al equipo</button><button class="link" data-act="closebtn">Cancelar</button></div></div>';
+}
 function sheetAdd(){
   const s=ui.sheet, dt=parse(s.date), isToday=s.date===today();
   const chips=[5000,10000,15000,20000].map(v=>'<button class="chip'+(s.amount===v&&!s.custom?' on':'')+'" data-act="amt" data-v="'+v+'">'+money(v)+'</button>').join('');
@@ -408,19 +372,8 @@ function sheetAdd(){
   +'<div class="chips">'+chips+'</div>'
   +'<input class="inp" id="amt-custom" inputmode="numeric" autocomplete="off" placeholder="Otro monto" aria-label="Otro monto" value="'+esc(s.custom)+'">'
   +'<span class="f">Tipo de aporte</span><div class="seg" role="radiogroup" aria-label="Tipo de aporte"><button role="radio" aria-checked="'+(s.kind==='mensual')+'" data-act="kind" data-v="mensual">Socio mensual</button><button role="radio" aria-checked="'+(s.kind==='unica')+'" data-act="kind" data-v="unica">Aporte único</button></div>'
-  +'<span class="f">Medio de pago</span><div class="seg" role="radiogroup" aria-label="Medio de pago"><button role="radio" aria-checked="'+(s.pago==='credito')+'" data-act="pago" data-v="credito">Crédito</button><button role="radio" aria-checked="'+(s.pago==='debito')+'" data-act="pago" data-v="debito">Débito</button></div>'
   +'<label class="f" for="donor">Nombre <small>(opcional)</small></label><input class="inp" id="donor" type="text" autocomplete="off" placeholder="Ej: Marcela R." value="'+esc(s.name)+'">'
   +'<button class="cta in-sheet" id="save-btn" data-act="save" '+(s.amount>0?'':'disabled')+'>'+(s.amount>0?'Guardar '+money(s.amount):'Elegí un monto')+'</button>'
-  +'<button class="link" data-act="closebtn">Cancelar</button></div></div>';
-}
-
-function sheetWipe(){
-  const n=state.donations.length;
-  return '<div class="veil" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="Empezar de cero"><div class="grab"></div>'
-  +'<h2>¿Empezar de cero?</h2>'
-  +'<p class="sub">'+(state.demo?'Se borran los datos de ejemplo y arrancás con la bitácora vacía.':'Se borran '+pl(n,'donación anotada','donaciones anotadas')+' y todos los días marcados como trabajados. Tus metas vuelven a los valores iniciales.')+'</p>'
-  +'<p class="sub">Esta acción no se puede deshacer y tu nombre no se borra.</p>'
-  +'<button class="danger solid" data-act="wipe-yes">Sí, borrar todo</button>'
   +'<button class="link" data-act="closebtn">Cancelar</button></div></div>';
 }
 
@@ -430,20 +383,10 @@ function renderToast(){
   el.innerHTML=ui.toast?'<div class="toast" role="status"><span>'+esc(ui.toast.msg)+'</span>'+(ui.toast.undo?'<button data-act="undo">Deshacer</button>':'')+'</div>':'';
 }
 function render(){
-  const logged=!!(state.user&&state.user.first);
-  document.body.classList.toggle('is-login',!logged);
-  if(!logged){
-    document.getElementById('app').innerHTML=viewLogin();
-    document.getElementById('sheet').innerHTML='';
-    document.getElementById('toast').innerHTML='';
-    document.documentElement.style.overflow='';
-    const f=document.getElementById('login-first'); if(f&&!ui.login.first) f.focus();
-    return;
-  }
-  const v=ui.tab==='hoy'?viewHoy():ui.tab==='mes'?viewMes():viewMetas();
-  document.getElementById('app').innerHTML=(state.demo?demoBar():'')+v;
+  const v=ui.tab==='hoy'?viewHoy():ui.tab==='mes'?viewMes():ui.tab==='equipo'&&leader?viewEquipo():viewMetas();
+  document.getElementById('app').innerHTML=v;
   document.querySelectorAll('.tab').forEach(b=>{if(b.dataset.tab===ui.tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():ui.sheet.type==='wipe'?sheetWipe():sheetDay()):'';
+  document.getElementById('sheet').innerHTML=ui.sheet?(ui.sheet.type==='add'?sheetAdd():ui.sheet.type==='name'?sheetName():ui.sheet.type==='paste'?sheetPaste():sheetDay()):'';
   document.documentElement.style.overflow=ui.sheet?'hidden':'';
   renderToast();
 }
@@ -457,30 +400,17 @@ function toast(msg,undo){
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act, s=ui.sheet;
-  if(a==='login'){
-    const first=(ui.login.first||'').trim().replace(/\s+/g,' '), last=(ui.login.last||'').trim().replace(/\s+/g,' ');
-    if(!first||!last){ ui.login.err='Completá tu nombre y tu apellido para continuar.'; return render(); }
-    ui.login.err='';
-    state.user={first:first,last:last};
-    persist(); toast('Bienvenida, '+first);
-    return render();
-  }
-  if(a==='logout'){
-    ui.login={first:(state.user||{}).first||'',last:(state.user||{}).last||'',err:''};
-    state.user=null; ui.tab='hoy'; ui.sheet=null; persist(); return render();
-  }
   if(a==='close'){ if(e.target!==el) return; ui.sheet=null; return render(); }
   if(a==='closebtn'){ ui.sheet=null; return render(); }
   if(a==='tab'){ ui.tab=el.dataset.tab; render(); window.scrollTo(0,0); return; }
-  if(a==='add'){ ui.sheet={type:'add',date:el.dataset.date||today(),amount:null,custom:'',kind:'mensual',pago:'credito',name:''}; return render(); }
+  if(a==='add'){ ui.sheet={type:'add',date:el.dataset.date||today(),amount:null,custom:'',kind:'mensual',name:''}; return render(); }
   if(a==='day'){ ui.sheet={type:'day',date:el.dataset.date}; return render(); }
   if(a==='amt'){ s.amount=Number(el.dataset.v); s.custom=''; return render(); }
   if(a==='kind'){ s.kind=el.dataset.v; return render(); }
-  if(a==='pago'){ s.pago=el.dataset.v; return render(); }
   if(a==='save'){
     if(!(s.amount>0)) return;
     const n=new Date(), donor=(s.name||'').trim();
-    state.donations.push({id:uid(),date:s.date,time:s.date===today()?pad(n.getHours())+':'+pad(n.getMinutes()):'',amount:s.amount,kind:s.kind,pago:s.pago||'credito',donor:donor});
+    state.donations.push({id:uid(),date:s.date,time:s.date===today()?pad(n.getHours())+':'+pad(n.getMinutes()):'',amount:s.amount,kind:s.kind,donor:donor});
     const id=state.donations[state.donations.length-1].id, amt=s.amount;
     ui.sheet=null; persist();
     toast('Donación anotada · '+money(amt),()=>{state.donations=state.donations.filter(d=>d.id!==id);});
@@ -505,22 +435,31 @@ document.addEventListener('click',e=>{
     const d=new Date(ui.month.y,ui.month.m+(a==='next'?1:-1),1);
     ui.month={y:d.getFullYear(),m:d.getMonth()}; return render();
   }
+  if(a==='tprev'||a==='tnext'){
+    const d=new Date(ui.tm.y,ui.tm.m+(a==='tnext'?1:-1),1);
+    ui.tm={y:d.getFullYear(),m:d.getMonth()}; return render();
+  }
+  if(a==='send') return sendReport();
+  if(a==='paste'){ ui.sheet={type:'paste'}; return render(); }
+  if(a==='dopaste'){
+    const b=document.getElementById('pastebox'), n=b?importCode(b.value):null;
+    if(!n){ toast('No pude leer ese código.'); return render(); }
+    ui.sheet=null; toast('Resumen de '+n+' actualizado.'); return render();
+  }
+  if(a==='name'){ ui.sheet={type:'name',value:state.name||''}; return render(); }
+  if(a==='savename'){
+    const v=((s&&s.value)||'').trim().slice(0,40); if(!v) return;
+    state.name=v; ui.sheet=null; persist(); return render();
+  }
   if(a==='goal'){
     const k=el.dataset.key, dir=Number(el.dataset.dir), g=state.goals;
     const cfg={count:{step:1,min:1,max:500},amount:{step:50000,min:50000,max:20000000},days:{step:1,min:1,max:31}}[k];
     g[k]=Math.min(cfg.max,Math.max(cfg.min,g[k]+dir*cfg.step)); persist(); return render();
   }
-  if(a==='reset'||a==='wipe'){ ui.sheet={type:'wipe'}; return render(); }
-  if(a==='wipe-yes'){
-    state.donations=[]; state.worked={}; state.demo=false; state.goals={count:40,amount:450000,days:20};
-    ui.sheet=null; ui.month={y:nowD.getFullYear(),m:nowD.getMonth()}; ui.tab='hoy';
-    persist(); toast('Bitácora vaciada'); render(); window.scrollTo(0,0); return;
-  }
 });
 document.addEventListener('input',e=>{
-  if(e.target.id==='login-first'){ ui.login.first=e.target.value; return; }
-  if(e.target.id==='login-last'){ ui.login.last=e.target.value; return; }
-  const s=ui.sheet; if(!s||s.type!=='add') return;
+  const s=ui.sheet; if(s&&s.type==='name'&&e.target.id==='myname'){ s.value=e.target.value; return; }
+  if(!s||s.type!=='add') return;
   if(e.target.id==='donor'){ s.name=e.target.value; return; }
   if(e.target.id==='amt-custom'){
     const digits=e.target.value.replace(/\D/g,'').slice(0,7);
@@ -530,15 +469,13 @@ document.addEventListener('input',e=>{
     if(b){ b.disabled=!(s.amount>0); b.textContent=s.amount>0?'Guardar '+money(s.amount):'Elegí un monto'; }
   }
 });
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; return render(); }
-  if(e.key==='Enter'&&(e.target.id==='login-first'||e.target.id==='login-last')){
-    e.preventDefault();
-    const b=document.querySelector('[data-act="login"]'); if(b) b.click();
-  }
-});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; render(); } });
 
+try{leader=localStorage.getItem('bitacora-lider')==='1';}catch(e){}
+if(leader) document.getElementById('tab-team').hidden=false;
+window.addEventListener('hashchange',handleHash);
 render();
+handleHash();
 })();
 </script>
 </body>
