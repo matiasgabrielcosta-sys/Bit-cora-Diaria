@@ -170,7 +170,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;paddin
 
 <script>
 (function(){
-const KEY='bitacora-donaciones-v1';
+const NS='::'+(location.pathname||'/').replace(/[^a-z0-9]+/gi,'_');
+const KEY='bitacora-donaciones-v1'+NS, LKEY='bitacora-lider'+NS;
+try{ const old=localStorage.getItem('bitacora-donaciones-v1'); if(localStorage.getItem(KEY)==null&&old!=null) localStorage.setItem(KEY,old); }catch(e){}
 const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const DIA=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 const DIA3=['dom','lun','mar','mié','jue','vie','sáb'];
@@ -199,7 +201,7 @@ function load(){
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 let leader=false;
-const TKEY='bitacora-equipo-v1', DRE=/^\d{4}-\d\d-\d\d$/;
+const TKEY='bitacora-equipo-v1'+NS, DRE=/^\d{4}-\d\d-\d\d$/;
 const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const dec=c=>JSON.parse(decodeURIComponent(escape(atob(c.replace(/-/g,'+').replace(/_/g,'/')))));
 const dm=t=>{const d=new Date(t);return d.getDate()+'/'+(d.getMonth()+1)};
@@ -236,7 +238,7 @@ function exportCsv(kind){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
-const GKEY='bitacora-metas-equipo-v1';
+const GKEY='bitacora-metas-equipo-v1'+NS;
 function teamGoals(){try{return JSON.parse(localStorage.getItem(GKEY))||{};}catch(e){return {};}}
 function effTeamGoal(y,m){
   const all=teamGoals(), key=y+'-'+pad(m+1), ks=Object.keys(all).filter(k=>k<=key).sort();
@@ -277,7 +279,7 @@ async function sendReport(){
 }
 function handleHash(){
   const h=location.hash; if(!h) return;
-  if(h.indexOf('#lider')===0){ try{localStorage.setItem('bitacora-lider','1');}catch(e){} leader=true; toast('Modo líder activado en este celular.'); }
+  if(h.indexOf('#lider')===0){ try{localStorage.setItem(LKEY,'1');}catch(e){} leader=true; toast('Modo líder activado en este celular.'); }
   else if(h.indexOf('#eq=')===0){
     if(leader){ const n=importCode(h); toast(n?'Resumen de '+n+' actualizado.':'No pude leer ese enlace.'); if(n) ui.tab='equipo'; }
     else toast('Ese enlace es para el líder. Abrí una vez el enlace con #lider en este celular.');
@@ -570,7 +572,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target&&e.target.dataset&&e.target.dataset.act==='member') e.target.click();
 });
 
-try{leader=localStorage.getItem('bitacora-lider')==='1';}catch(e){}
+try{leader=localStorage.getItem(LKEY)==='1';}catch(e){}
 if(leader) document.getElementById('tab-team').hidden=false;
 window.addEventListener('hashchange',handleHash);
 render();
